@@ -1,5 +1,6 @@
 # Standard Library
 import os
+import time
 import uuid
 import datetime
 
@@ -163,6 +164,7 @@ def gridding_radar_150km(radar, radar_date, outpath):
 
 
 def radar_gridding(infile, output_directory):
+    sttime = time.time()
     radar = pyart.io.read(infile)
     radar_start_date = netCDF4.num2date(radar.time['data'][0], radar.time['units'].replace("since", "since "))
 
@@ -187,5 +189,7 @@ def radar_gridding(infile, output_directory):
     outpath_70 = os.path.join(output_directory, "grid_70km_1000m")
     mkdir(outpath_70)
     gridding_radar_70km(radar, radar_start_date, outpath_70)
+
+    print(f"{infile} processed in {time.time() - sttime:0.2f}.")
 
     return None
