@@ -75,6 +75,9 @@ def gridding_radar_70km(radar, radar_date, outpath):
     grid_70km.fields.pop('ROI')
     grid_70km.fields.pop('raw_velocity')
 
+    # Change name of reflectivity
+    grid_70km.add_field("reflectivity_gridded_dBZ", grid_70km.fields.pop('reflectivity'))
+
     # Switch linear reflectivity back to dBZ
     grid_70km.fields['reflectivity_gridded_Z']['data'] = 10 * np.log10(grid_70km.fields['reflectivity_gridded_Z']['data'])
 
@@ -144,6 +147,9 @@ def gridding_radar_150km(radar, radar_date, outpath):
     # Removing obsolete fields
     grid_150km.fields.pop('ROI')
     grid_150km.fields.pop('raw_velocity')
+
+    # Change name of reflectivity
+    grid_150km.add_field("reflectivity_gridded_dBZ", grid_150km.fields.pop('reflectivity'))
 
     # Switch linear reflectivity back to dBZ
     grid_150km.fields['reflectivity_gridded_Z']['data'] = 10 * np.log10(grid_150km.fields['reflectivity_gridded_Z']['data'])
