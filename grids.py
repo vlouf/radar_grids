@@ -181,9 +181,11 @@ def radar_gridding(infile, output_directory):
     radar.add_field('reflectivity_gridded_Z', linear_z)
 
     outpath_150 = os.path.join(output_directory, "grid_150km_2500m")
+    mkdir(outpath_150)
     gridding_radar_150km(radar, radar_start_date, outpath_150)
 
     outpath_70 = os.path.join(output_directory, "grid_70km_1000m")
+    mkdir(outpath_70)
     gridding_radar_70km(radar, radar_start_date, outpath_70)
 
     return None
