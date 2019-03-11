@@ -1,19 +1,16 @@
 """
-CPOL Level 1b main production line.
+Turning radar PPIs into Cartesian grids.
 
-@title: CPOL_PROD_1b
+@title: radar_grids
 @author: Valentin Louf <valentin.louf@monash.edu>
-@institution: Bureau of Meteorology
-@date: 1/03/2019
+@institution: Monash University
+@date: 11/03/2019
 @version: 1
 
 .. autosummary::
     :toctree: generated/
-
-    timeout_handler
-    chunks
-    production_line_manager
-    production_line_multiproc
+    
+    chunks    
     main
 """
 # Python Standard Library
