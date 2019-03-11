@@ -122,12 +122,9 @@ if __name__ == '__main__':
         print("Invalid dates.")
         sys.exit()
 
-    try:
-        if not os.path.isdir(OUTPATH):
-            os.mkdir(OUTPATH)
-    except FileExistsError:
-        # Extra layer of security due to potential concurrency issue 
-        pass
+    print("The start date is: " + start.strftime("%Y-%m-%d"))
+    print("The end date is: " + end.strftime("%Y-%m-%d"))
+    print(f"The input directory is {INPATH}\nThe output directory is {OUTPATH}.")
 
     for day in date_range:
         input_dir = os.path.join(INPATH, str(day.year), day.strftime("%Y%m%d"), "*.*")
