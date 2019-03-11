@@ -86,8 +86,8 @@ def gridding_radar_70km(radar, radar_date, outpath):
     metadata['uuid'] = str(uuid.uuid4())
     metadata.pop('field_names')
 
-    # Saving data.
-    grid_70km.write(outfilename, arm_time_variables=True, write_point_lon_lat_alt=True)
+    # Saving data.    
+    pyart.io.write_grid(outfilename, grid_70km, write_point_lon_lat_alt=True)
 
     return None
 
@@ -157,7 +157,7 @@ def gridding_radar_150km(radar, radar_date, outpath):
     metadata.pop('field_names')
 
     # Saving data.
-    grid_150km.write(outfilename, arm_time_variables=True, write_point_lon_lat_alt=True)
+    pyart.io.write_grid(outfilename, grid_150km, write_point_lon_lat_alt=True)
 
     return None
 
