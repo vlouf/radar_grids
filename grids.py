@@ -75,7 +75,7 @@ def gridding_radar_70km(radar, radar_date, outpath):
     grid_70km.fields.pop('raw_velocity')
 
     # Switch linear reflectivity back to dBZ
-    grid_70km['reflectivity_gridded_Z']['data'] = 10 * np.log10(grid_70km['reflectivity_gridded_Z']['data'])
+    grid_70km.fields['reflectivity_gridded_Z']['data'] = 10 * np.log10(grid_70km.fields['reflectivity_gridded_Z']['data'])
 
     # Metadata
     today = datetime.datetime.utcnow()
@@ -145,7 +145,7 @@ def gridding_radar_150km(radar, radar_date, outpath):
     grid_150km.fields.pop('raw_velocity')
 
     # Switch linear reflectivity back to dBZ
-    grid_150km['reflectivity_gridded_Z']['data'] = 10 * np.log10(grid_150km['reflectivity_gridded_Z']['data'])
+    grid_150km.fields['reflectivity_gridded_Z']['data'] = 10 * np.log10(grid_150km.fields['reflectivity_gridded_Z']['data'])
 
     # Metadata
     today = datetime.datetime.utcnow()
