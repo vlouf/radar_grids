@@ -56,11 +56,11 @@ def main(inargs):
         warnings.simplefilter('ignore')
         import grids
 
-    try:
-        grids.radar_gridding(infile, outpath)
-    except Exception:
-        traceback.print_exc()
-        return None
+        try:
+            grids.radar_gridding(infile, outpath)
+        except Exception:
+            traceback.print_exc()
+            return None
 
     return None
 
@@ -132,22 +132,20 @@ if __name__ == '__main__':
         if len(flist) == 0:
             print('No file found for {}.'.format(day.strftime("%Y-%b-%d")))
             continue
-        print(f'{len(flist)} files found for ' + day.strftime("%Y-%b-%d"))
-        for flist_chunk in chunks(flist, 16):
-            arglist = [(f, OUTPATH) for f in flist_chunk]
-            with ProcessPool() as pool:
-                future = pool.map(main, arglist, timeout=60)
-                iterator = future.result()
-                while True:
-                    try:
-                        result = next(iterator)
-                    except StopIteration:
-                        break
-                    except TimeoutError as error:
-                        print("function took longer than %d seconds" % error.args[1])
-                    except ProcessExpired as error:
-                        print("%s. Exit code: %d" % (error, error.exitcode))
-                    except Exception as error:
-                        print("function raised %s" % error)
-                        print(error.traceback)  # Python's traceback of remote process
-
+        print(f'{len(flist)} files found for ' + day.strftime("%Y-%b-%d"))        
+        arglist = [(f, OUTPATH) for f in flist]
+        with ProcessPool() as pool:
+            future = pool.map(main, arglist, timeout=60)
+            iterator = future.result()
+            while True:
+                try:
+                    result = next(iterator)
+                except StopIteration:
+                    break
+                except TimeoutError as error:
+                    print("function took longer than %d seconds" % error.args[1])
+                except ProcessExpired as error:
+                    print("%s. Exit code: %d" % (error, error.exitcode))
+                except Exception as error:
+                    print("function raised %s" % error)
+                    print(error.traceback)  # Python's traceback of remote process
