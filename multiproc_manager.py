@@ -134,7 +134,7 @@ if __name__ == '__main__':
             continue
         print(f'{len(flist)} files found for ' + day.strftime("%Y-%b-%d"))        
         arglist = [(f, OUTPATH) for f in flist]
-        with ProcessPool() as pool:
+        with ProcessPool(max_workers=16) as pool:
             future = pool.map(main, arglist, timeout=60)
             iterator = future.result()
             while True:
