@@ -17,6 +17,7 @@ Turning radar PPIs into Cartesian grids.
 import os
 import sys
 import glob
+import time
 import argparse
 import datetime
 import traceback
@@ -125,7 +126,8 @@ if __name__ == '__main__':
     print("The start date is: " + start.strftime("%Y-%m-%d"))
     print("The end date is: " + end.strftime("%Y-%m-%d"))
     print(f"The input directory is {INPATH}\nThe output directory is {OUTPATH}.")
-
+    
+    sttime = time.time()
     for day in date_range:
         input_dir = os.path.join(INPATH, str(day.year), day.strftime("%Y%m%d"), "*.*")
         flist = sorted(glob.glob(input_dir))
@@ -149,3 +151,5 @@ if __name__ == '__main__':
                 except Exception as error:
                     print("function raised %s" % error)
                     print(error.traceback)  # Python's traceback of remote process
+    
+    print(f"Process completed in {time.time() - sttime:0.2f}.")
