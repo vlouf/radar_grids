@@ -96,14 +96,14 @@ if __name__ == '__main__':
         '-i',
         '--input-dir',
         dest='indir',
-        default="/g/data/hj10/cpol_level_1b/v2009/ppi/",
+        default="/g/data/hj10/cpol_level_1b/v2019/ppi",
         type=str,
         help='Input directory.')
     parser.add_argument(
         '-o',
         '--output-dir',
         dest='outdir',
-        default="/g/data/hj10/cpol_level_1b/v2009/gridded/",
+        default="/g/data/hj10/cpol_level_1b/v2019/gridded",
         type=str,
         help='Output directory.')
 
