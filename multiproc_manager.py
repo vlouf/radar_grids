@@ -107,12 +107,20 @@ if __name__ == '__main__':
         default="/g/data/hj10/cpol_level_1b/v2019/gridded",
         type=str,
         help='Output directory.')
+    parser.add_argument(
+        '-n',
+        '--ncpu',
+        dest='ncpu',
+        default=16,
+        type=int,
+        help='Number of CPUs for multiprocessing.')
 
     args = parser.parse_args()
     START_DATE = args.start_date
     END_DATE = args.end_date
     INPATH = args.indir
     OUTPATH = args.outdir
+    NCPU = args.ncpu
     try:
         start = datetime.datetime.strptime(START_DATE, "%Y%m%d")
         end = datetime.datetime.strptime(END_DATE, "%Y%m%d")
@@ -136,8 +144,8 @@ if __name__ == '__main__':
             continue
         print(f'{len(flist)} files found for ' + day.strftime("%Y-%b-%d"))        
         arglist = [(f, OUTPATH) for f in flist]
-        with ProcessPool(max_workers=16) as pool:
-            future = pool.map(main, arglist, timeout=60)
+        with ProcessPool(max_workers=NCPU) as pool:
+            future = pool.map(main, arglist, timeout=180)
             iterator = future.result()
             while True:
                 try:
