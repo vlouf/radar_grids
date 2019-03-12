@@ -88,7 +88,10 @@ def gridding_radar_70km(radar, radar_date, outpath):
     metadata['processing_level'] = 'b2'
     metadata['title'] = "Gridded radar volume on a 70x70x20km grid from CPOL"
     metadata['uuid'] = str(uuid.uuid4())
-    metadata.pop('field_names')
+    try:
+        metadata.pop('field_names')
+    except KeyError:
+        pass
 
     radar.metadata = metadata
 
@@ -163,7 +166,10 @@ def gridding_radar_150km(radar, radar_date, outpath):
     metadata['processing_level'] = 'b2'
     metadata['title'] = "Gridded radar volume on a 150x150x20km grid from CPOL"
     metadata['uuid'] = str(uuid.uuid4())
-    metadata.pop('field_names')
+    try:
+        metadata.pop('field_names')
+    except KeyError:
+        pass
 
     radar.metadata = metadata
 
