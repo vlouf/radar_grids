@@ -65,9 +65,9 @@ def gridding_radar_70km(radar, radar_date, outpath):
         radar, gatefilters=my_gatefilter,
         grid_shape=(41, 141, 141),
         grid_limits=((0, 20000), (-70000.0, 70000.0), (-70000.0, 70000.0)),
-        gridding_algo="map_gates_to_grid", weighting_function='CRESSMAN',
+        gridding_algo="map_gates_to_grid", weighting_function='Barnes',
         map_roi=True, toa=20000, copy_field_data=True, algorithm='kd_tree',
-        leafsize=10., roi_func='dist_beam', constant_roi=1000,
+        leafsize=10., roi_func='dist_beam', constant_roi=2500,
         z_factor=0.05, xy_factor=0.02, min_radius=500.0,
         h_factor=1.0, nb=1.5, bsp=1.0, skip_transform=False)
 
@@ -142,7 +142,7 @@ def gridding_radar_150km(radar, radar_date, outpath):
         radar, gatefilters=my_gatefilter,
         grid_shape=(41, 117, 117),
         grid_limits=((0, 20000), (-145000.0, 145000.0), (-145000.0, 145000.0)),
-        gridding_algo="map_gates_to_grid", weighting_function='CRESSMAN',
+        gridding_algo="map_gates_to_grid", weighting_function='Barnes',
         map_roi=True, toa=20000, copy_field_data=True, algorithm='kd_tree',
         leafsize=10., roi_func='dist_beam', constant_roi=2500,
         z_factor=0.05, xy_factor=0.02, min_radius=500.0,
