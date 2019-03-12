@@ -90,6 +90,8 @@ def gridding_radar_70km(radar, radar_date, outpath):
     metadata['uuid'] = str(uuid.uuid4())
     metadata.pop('field_names')
 
+    radar.metadata = metadata
+
     # Saving data.    
     pyart.io.write_grid(outfilename, grid_70km, write_point_lon_lat_alt=True)
 
@@ -163,6 +165,8 @@ def gridding_radar_150km(radar, radar_date, outpath):
     metadata['uuid'] = str(uuid.uuid4())
     metadata.pop('field_names')
 
+    radar.metadata = metadata
+
     # Saving data.
     pyart.io.write_grid(outfilename, grid_150km, write_point_lon_lat_alt=True)
 
@@ -177,9 +181,9 @@ def radar_gridding(infile, output_directory):
     # Linear reflectivity
     refl = radar.fields['reflectivity']['data'].copy()
     linear_z = dict()
-    nu = (10 ** (refl / 10)).astype(np.float32)
-    np.ma.set_fill_value(nu, np.NaN)
-    linear_z['data'] = nu
+    eta = (10 ** (refl / 10)).astype(np.float32)
+    np.ma.set_fill_value(eta, np.NaN)
+    linear_z['data'] = eta
     linear_z['units'] = 'dBZ'
     linear_z['long_name'] = 'Corrected reflectivity gridded linearly'
     linear_z['units']
