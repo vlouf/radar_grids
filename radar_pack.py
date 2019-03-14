@@ -145,7 +145,7 @@ if __name__ == '__main__':
         print(f'{len(flist)} files found for ' + day.strftime("%Y-%b-%d"))
         arglist = [(f, OUTPATH) for f in flist]
 
-        for list_chunk in chunks(arglist, NCPU):
+        for list_chunk in chunks(arglist, 2 * NCPU):
             with ProcessPool(max_workers=NCPU) as pool:
                 future = pool.map(main, list_chunk, timeout=180)
                 iterator = future.result()
