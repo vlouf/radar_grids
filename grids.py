@@ -5,6 +5,7 @@ import uuid
 import datetime
 
 # Other libraries.
+import crayons
 import pyart
 import netCDF4
 import numpy as np
@@ -182,7 +183,7 @@ def radar_gridding(infile, output_directory):
     radar = pyart.io.read(infile)
     radar_start_date = netCDF4.num2date(radar.time['data'][0], radar.time['units'].replace("since", "since "))
 
-    obsolete_keys = ["total_power"]
+    obsolete_keys = ["total_power", ]
     for key in obsolete_keys:
         try:
             radar.fields.pop(key)
@@ -211,6 +212,6 @@ def radar_gridding(infile, output_directory):
     mkdir(outpath_70)
     gridding_radar_70km(radar, radar_start_date, outpath_70)
 
-    print(f"{os.path.basename(infile)} processed in {time.time() - sttime:0.2f}.")
+    print(crayons.green(f"{os.path.basename(infile)} processed in {time.time() - sttime:0.2f}."))
 
     return None

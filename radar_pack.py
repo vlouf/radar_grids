@@ -9,8 +9,8 @@ Turning radar PPIs into Cartesian grids.
 
 .. autosummary::
     :toctree: generated/
-    
-    chunks    
+
+    chunks
     main
 """
 # Python Standard Library
@@ -71,8 +71,8 @@ if __name__ == '__main__':
     Global variables definition.
     """
     # Main global variables (Path directories).
-    
-    OUTPATH = "/g/data/hj10/cpol_level_1b/v2009/gridded/"    
+
+    OUTPATH = "/g/data/hj10/cpol_level_1b/v2009/gridded/"
 
     # Parse arguments
     parser_description = "Processing of radar data from level 1a to level 1b."
@@ -134,7 +134,7 @@ if __name__ == '__main__':
     print("The start date is: " + start.strftime("%Y-%m-%d"))
     print("The end date is: " + end.strftime("%Y-%m-%d"))
     print(f"The input directory is {INPATH}\nThe output directory is {OUTPATH}.")
-    
+
     sttime = time.time()
     for day in date_range:
         input_dir = os.path.join(INPATH, str(day.year), day.strftime("%Y%m%d"), "*.*")
@@ -142,22 +142,24 @@ if __name__ == '__main__':
         if len(flist) == 0:
             print('No file found for {}.'.format(day.strftime("%Y-%b-%d")))
             continue
-        print(f'{len(flist)} files found for ' + day.strftime("%Y-%b-%d"))        
+        print(f'{len(flist)} files found for ' + day.strftime("%Y-%b-%d"))
         arglist = [(f, OUTPATH) for f in flist]
-        with ProcessPool(max_workers=NCPU) as pool:
-            future = pool.map(main, arglist, timeout=180)
-            iterator = future.result()
-            while True:
-                try:
-                    result = next(iterator)
-                except StopIteration:
-                    break
-                except TimeoutError as error:
-                    print("function took longer than %d seconds" % error.args[1])
-                except ProcessExpired as error:
-                    print("%s. Exit code: %d" % (error, error.exitcode))
-                except Exception as error:
-                    print("function raised %s" % error)
-                    print(error.traceback)  # Python's traceback of remote process
-    
+
+        for list_chunk in chunks(arglist, NCPU):
+            with ProcessPool(max_workers=NCPU) as pool:
+                future = pool.map(main, list_chunk, timeout=180)
+                iterator = future.result()
+                while True:
+                    try:
+                        result = next(iterator)
+                    except StopIteration:
+                        break
+                    except TimeoutError as error:
+                        print("function took longer than %d seconds" % error.args[1])
+                    except ProcessExpired as error:
+                        print("%s. Exit code: %d" % (error, error.exitcode))
+                    except Exception as error:
+                        print("function raised %s" % error)
+                        print(error.traceback)  # Python's traceback of remote process
+
     print(f"Process completed in {time.time() - sttime:0.2f}.")
