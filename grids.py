@@ -77,9 +77,11 @@ def gridding_radar_70km(radar, radar_date, outpath):
 
     # Change name of reflectivity
     grid_70km.add_field("reflectivity_gridded_dBZ", grid_70km.fields.pop('reflectivity'))
+    grid_70km.fields['reflectivity_gridded_dBZ']['comment'] = "DO NOT USE. Please use the reflectivity_gridded_Z as default reflectivity field."
 
     # Switch linear reflectivity back to dBZ
     grid_70km.fields['reflectivity_gridded_Z']['data'] = 10 * np.log10(grid_70km.fields['reflectivity_gridded_Z']['data'])
+    grid_70km.fields['reflectivity_gridded_Z']['comment'] = "Reflectivity field of reference."
 
     # Metadata
     today = datetime.datetime.utcnow()
@@ -92,7 +94,7 @@ def gridding_radar_70km(radar, radar_date, outpath):
 
     grid_70km.metadata = metadata
 
-    # Saving data.    
+    # Saving data.
     pyart.io.write_grid(outfilename, grid_70km, write_point_lon_lat_alt=True)
 
     return None
@@ -152,9 +154,11 @@ def gridding_radar_150km(radar, radar_date, outpath):
 
     # Change name of reflectivity
     grid_150km.add_field("reflectivity_gridded_dBZ", grid_150km.fields.pop('reflectivity'))
+    grid_150km.fields['reflectivity_gridded_dBZ']['comment'] = "DO NOT USE. Please use the reflectivity_gridded_Z as default reflectivity field."
 
     # Switch linear reflectivity back to dBZ
     grid_150km.fields['reflectivity_gridded_Z']['data'] = 10 * np.log10(grid_150km.fields['reflectivity_gridded_Z']['data'])
+    grid_150km.fields['reflectivity_gridded_Z']['comment'] = "Reflectivity field of reference."
 
     # Metadata
     today = datetime.datetime.utcnow()
