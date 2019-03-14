@@ -182,6 +182,13 @@ def radar_gridding(infile, output_directory):
     radar = pyart.io.read(infile)
     radar_start_date = netCDF4.num2date(radar.time['data'][0], radar.time['units'].replace("since", "since "))
 
+    obsolete_keys = ["total_power"]
+    for key in obsolete_keys:
+        try:
+            radar.fields.pop(key)
+        except KeyError:
+            continue
+
     # Linear reflectivity
     refl = radar.fields['reflectivity']['data'].copy()
     linear_z = dict()
@@ -204,6 +211,6 @@ def radar_gridding(infile, output_directory):
     mkdir(outpath_70)
     gridding_radar_70km(radar, radar_start_date, outpath_70)
 
-    print(f"{infile} processed in {time.time() - sttime:0.2f}.")
+    print(f"{os.path.basename(infile)} processed in {time.time() - sttime:0.2f}.")
 
     return None
