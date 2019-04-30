@@ -70,9 +70,7 @@ if __name__ == '__main__':
     """
     Global variables definition.
     """
-    # Main global variables (Path directories).
-
-    OUTPATH = "/g/data/hj10/cpol_level_1b/v2009/gridded/"
+    # Main global variables (Path directories).    
 
     # Parse arguments
     parser_description = "Processing of radar data from level 1a to level 1b."
@@ -97,14 +95,14 @@ if __name__ == '__main__':
         '-i',
         '--input-dir',
         dest='indir',
-        default="/g/data/hj10/cpol_level_1b/v2019/ppi",
+        default="/g/data/hj10/cpol_level_1b/v2018/ppi",
         type=str,
         help='Input directory.')
     parser.add_argument(
         '-o',
         '--output-dir',
         dest='outdir',
-        default="/g/data/hj10/cpol_level_1b/v2019/gridded",
+        default="/g/data/hj10/cpol_level_1b/v2018/gridded",
         type=str,
         help='Output directory.')
     parser.add_argument(
