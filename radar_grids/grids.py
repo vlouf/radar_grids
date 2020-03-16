@@ -1,3 +1,19 @@
+"""
+Gridding radar data using Barnes2 and a constant ROI from Py-ART
+
+@title: grids.py
+@author: Valentin Louf <valentin.louf@monash.edu>
+@institutions: Monash University and the Australian Bureau of Meteorology
+@date: 16/03/2020
+
+.. autosummary::
+    :toctree: generated/
+
+    mkdir
+    gridding_radar_70km
+    gridding_radar_150km
+    radar_gridding
+"""
 # Standard Library
 import os
 import time
@@ -20,7 +36,7 @@ def mkdir(dirpath):
         try:
             os.mkdir(dirpath)
         except FileExistsError:
-            return None
+            pass
 
     return None
 
@@ -66,8 +82,7 @@ def gridding_radar_70km(radar, radar_date, outpath):
         radar, gatefilters=my_gatefilter,
         grid_shape=(41, 141, 141),
         grid_limits=((0, 20000), (-70000.0, 70000.0), (-70000.0, 70000.0)),
-        gridding_algo="map_gates_to_grid", weighting_function='Barnes2', roi_func='constant',
-        constant_roi=2500,)
+        gridding_algo="map_gates_to_grid", weighting_function='Barnes2', roi_func='constant', constant_roi=1000,)
 
     # Removing obsolete fields
     grid_70km.fields.pop('ROI')
@@ -75,14 +90,6 @@ def gridding_radar_70km(radar, radar_date, outpath):
         grid_70km.fields.pop('raw_velocity')
     except KeyError:
         pass
-
-    # Change name of reflectivity
-    grid_70km.add_field("reflectivity_gridded_dBZ", grid_70km.fields.pop('reflectivity'))
-    grid_70km.fields['reflectivity_gridded_dBZ']['comment'] = "DO NOT USE. Please use the reflectivity_gridded_Z as default reflectivity field."
-
-    # Switch linear reflectivity back to dBZ
-    grid_70km.fields['reflectivity_gridded_Z']['data'] = 10 * np.log10(grid_70km.fields['reflectivity_gridded_Z']['data'])
-    grid_70km.fields['reflectivity_gridded_Z']['comment'] = "Reflectivity field of reference."
 
     # Metadata
     today = datetime.datetime.utcnow()
@@ -98,6 +105,7 @@ def gridding_radar_70km(radar, radar_date, outpath):
     # Saving data.
     pyart.io.write_grid(outfilename, grid_70km, write_point_lon_lat_alt=True)
 
+    del grid_70km
     return None
 
 
@@ -142,9 +150,7 @@ def gridding_radar_150km(radar, radar_date, outpath):
         radar, gatefilters=my_gatefilter,
         grid_shape=(41, 117, 117),
         grid_limits=((0, 20000), (-145000.0, 145000.0), (-145000.0, 145000.0)),
-        gridding_algo="map_gates_to_grid", weighting_function='Barnes2', roi_func='constant',
-        constant_roi=2500,)
-
+        gridding_algo="map_gates_to_grid", weighting_function='Barnes2', roi_func='constant', constant_roi=2500,)
 
     # Removing obsolete fields
     grid_150km.fields.pop('ROI')
@@ -152,14 +158,6 @@ def gridding_radar_150km(radar, radar_date, outpath):
         grid_150km.fields.pop('raw_velocity')
     except KeyError:
         pass
-
-    # Change name of reflectivity
-    grid_150km.add_field("reflectivity_gridded_dBZ", grid_150km.fields.pop('reflectivity'))
-    grid_150km.fields['reflectivity_gridded_dBZ']['comment'] = "DO NOT USE. Please use the reflectivity_gridded_Z as default reflectivity field."
-
-    # Switch linear reflectivity back to dBZ
-    grid_150km.fields['reflectivity_gridded_Z']['data'] = 10 * np.log10(grid_150km.fields['reflectivity_gridded_Z']['data'])
-    grid_150km.fields['reflectivity_gridded_Z']['comment'] = "Reflectivity field of reference."
 
     # Metadata
     today = datetime.datetime.utcnow()
@@ -175,10 +173,22 @@ def gridding_radar_150km(radar, radar_date, outpath):
     # Saving data.
     pyart.io.write_grid(outfilename, grid_150km, write_point_lon_lat_alt=True)
 
+    del grid_150km
     return None
 
 
 def radar_gridding(infile, output_directory):
+    """
+    Call the 2 gridding functions to generate a full domain grid at 2.5 km
+    resolution and a half-domain grid at 1 km resolution
+
+    Parameters:
+    ===========
+    infile: str
+        Inpute radar file
+    output_directory: str
+        Ouput directory.
+    """
     sttime = time.time()
     radar = pyart.io.read(infile)
     radar_start_date = netCDF4.num2date(radar.time['data'][0], radar.time['units'].replace("since", "since "))
@@ -189,24 +199,10 @@ def radar_gridding(infile, output_directory):
             radar.fields.pop(key)
         except KeyError:
             continue
-            
+
     if "reflectivity" not in radar.fields.keys():
         if "corrected_reflectivity" in radar.fields.keys():
             radar.add_field("reflectivity", radar.fields.pop("corrected_reflectivity"))
-
-    # Linear reflectivity
-    refl = radar.fields['reflectivity']['data'].copy()
-    linear_z = dict()
-    eta = (10 ** (refl / 10)).astype(np.float32)
-    np.ma.set_fill_value(eta, np.NaN)
-    linear_z['data'] = eta
-    linear_z['units'] = 'dBZ'
-    linear_z['long_name'] = 'Corrected reflectivity gridded linearly'
-    linear_z['units']
-    linear_z['_FillValue'] = np.NaN
-    linear_z['_Least_significant_digit'] = 4
-
-    radar.add_field('reflectivity_gridded_Z', linear_z)
 
     outpath_150 = os.path.join(output_directory, "grid_150km_2500m")
     mkdir(outpath_150)
@@ -218,4 +214,5 @@ def radar_gridding(infile, output_directory):
 
     print(crayons.green(f"{os.path.basename(infile)} processed in {time.time() - sttime:0.2f}."))
 
+    del radar
     return None
