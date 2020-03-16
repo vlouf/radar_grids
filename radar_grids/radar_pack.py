@@ -26,7 +26,7 @@ import traceback
 import dask
 import dask.bag as db
 
-from . import grids
+import grids
 
 
 def chunks(l, n):
