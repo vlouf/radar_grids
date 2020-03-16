@@ -4,13 +4,13 @@ Turning radar PPIs into Cartesian grids.
 @title: radar_grids
 @author: Valentin Louf <valentin.louf@monash.edu>
 @institution: Monash University
-@date: 11/03/2019
-@version: 1
+@date: 16/03/2020
 
 .. autosummary::
     :toctree: generated/
 
     chunks
+    buffer
     main
 """
 # Python Standard Library
@@ -20,10 +20,13 @@ import glob
 import time
 import argparse
 import datetime
+import warnings
 import traceback
 
-from concurrent.futures import TimeoutError
-from pebble import ProcessPool, ProcessExpired
+import dask
+import dask.bag as db
+
+from . import grids
 
 
 def chunks(l, n):
@@ -35,7 +38,7 @@ def chunks(l, n):
         yield l[i:i + n]
 
 
-def main(inargs):
+def buffer(infile):
     """
     It calls the production line and manages it. Buffer function that is used
     to catch any problem with the processing line without screwing the whole
@@ -48,20 +51,28 @@ def main(inargs):
     outpath: str
         Path for saving output data.
     """
-    import warnings
-    import traceback
+    try:
+        grids.radar_gridding(infile, OUTPATH)
+    except Exception:
+        traceback.print_exc()
+        return None
 
-    infile, outpath = inargs
+    return None
 
-    with warnings.catch_warnings():
-        warnings.simplefilter('ignore')
-        import grids
 
-        try:
-            grids.radar_gridding(infile, outpath)
-        except Exception:
-            traceback.print_exc()
-            return None
+def main(date_range):
+    for day in date_range:
+        input_dir = os.path.join(INPATH, str(day.year), day.strftime("%Y%m%d"), "*.*")
+        flist = sorted(glob.glob(input_dir))
+        if len(flist) == 0:
+            print('No file found for {}.'.format(day.strftime("%Y-%b-%d")))
+            continue
+        print(f'{len(flist)} files found for ' + day.strftime("%Y-%b-%d"))
+
+        for flist_chunk in chunks(flist, 32):
+            bag = db.from_sequence(flist_chunk).map(buffer)
+            _ = bag.compute()
+        del bag
 
     return None
 
@@ -70,8 +81,6 @@ if __name__ == '__main__':
     """
     Global variables definition.
     """
-    # Main global variables (Path directories).    
-
     # Parse arguments
     parser_description = "Processing of radar data from level 1a to level 1b."
     parser = argparse.ArgumentParser(description=parser_description)
@@ -105,20 +114,12 @@ if __name__ == '__main__':
         default="/g/data/hj10/cpol_level_1b/v2019/gridded_new/",
         type=str,
         help='Output directory.')
-    parser.add_argument(
-        '-n',
-        '--ncpu',
-        dest='ncpu',
-        default=16,
-        type=int,
-        help='Number of CPUs for multiprocessing.')
 
     args = parser.parse_args()
     START_DATE = args.start_date
     END_DATE = args.end_date
     INPATH = args.indir
     OUTPATH = args.outdir
-    NCPU = args.ncpu
     try:
         start = datetime.datetime.strptime(START_DATE, "%Y%m%d")
         end = datetime.datetime.strptime(END_DATE, "%Y%m%d")
@@ -126,38 +127,13 @@ if __name__ == '__main__':
             raise ValueError('End date older than start date.')
         date_range = [start + datetime.timedelta(days=x) for x in range(0, (end - start).days + 1, )]
     except ValueError:
-        print("Invalid dates.")
+        parser.error('Invalid dates.')
         sys.exit()
 
     print("The start date is: " + start.strftime("%Y-%m-%d"))
     print("The end date is: " + end.strftime("%Y-%m-%d"))
     print(f"The input directory is {INPATH}\nThe output directory is {OUTPATH}.")
 
-    sttime = time.time()
-    for day in date_range:
-        input_dir = os.path.join(INPATH, str(day.year), day.strftime("%Y%m%d"), "*.*")
-        flist = sorted(glob.glob(input_dir))
-        if len(flist) == 0:
-            print('No file found for {}.'.format(day.strftime("%Y-%b-%d")))
-            continue
-        print(f'{len(flist)} files found for ' + day.strftime("%Y-%b-%d"))
-        arglist = [(f, OUTPATH) for f in flist]
-
-        for list_chunk in chunks(arglist, 2 * NCPU):
-            with ProcessPool(max_workers=NCPU) as pool:
-                future = pool.map(main, list_chunk, timeout=180)
-                iterator = future.result()
-                while True:
-                    try:
-                        result = next(iterator)
-                    except StopIteration:
-                        break
-                    except TimeoutError as error:
-                        print("function took longer than %d seconds" % error.args[1])
-                    except ProcessExpired as error:
-                        print("%s. Exit code: %d" % (error, error.exitcode))
-                    except Exception as error:
-                        print("function raised %s" % error)
-                        print(error.traceback)  # Python's traceback of remote process
-
-    print(f"Process completed in {time.time() - sttime:0.2f}.")
+    with warnings.catch_warnings():
+        warnings.simplefilter('ignore')
+        main(date_range)
