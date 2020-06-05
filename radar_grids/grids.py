@@ -177,7 +177,7 @@ def gridding_radar_150km(radar, radar_date, outpath):
     return None
 
 
-def radar_gridding(infile, output_directory):
+def gridding(infile, output_directory):
     """
     Call the 2 gridding functions to generate a full domain grid at 2.5 km
     resolution and a half-domain grid at 1 km resolution
