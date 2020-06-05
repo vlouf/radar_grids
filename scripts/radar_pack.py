@@ -2,9 +2,9 @@
 Turning radar PPIs into Cartesian grids.
 
 @title: radar_grids
-@author: Valentin Louf <valentin.louf@monash.edu>
-@institution: Monash University
-@date: 16/03/2020
+@author: Valentin Louf <valentin.louf@bom.gov.au>
+@institution: Monash University and the Australian Bureau of Meteorology
+@date: 05/06/2020
 
 .. autosummary::
     :toctree: generated/
