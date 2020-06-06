@@ -11,6 +11,7 @@ Gridding radar data using Barnes2 and a constant ROI from Py-ART
 
     mkdir
     update_metadata
+    update_variables_metadata
     gridding_radar_70km
     gridding_radar_150km
     radar_gridding
@@ -60,7 +61,7 @@ def update_metadata(radar) -> dict:
 
     metadata = {'comment': 'Gridded radar volume using Barnes et al. ROI',
                 'field_names': ", ".join([k for k in radar.fields.keys()]),
-                'geospatial_vertical_min': 0,
+                'geospatial_vertical_min': radar.altitude['data'][0],
                 'geospatial_vertical_max': 20000,
                 'geospatial_vertical_positive': 'up',
                 'history': f"created by Valentin Louf on gadi.nci.org.au at {today.isoformat()} using Py-ART",
@@ -70,6 +71,44 @@ def update_metadata(radar) -> dict:
                 'uuid': str(uuid.uuid4()),}
 
     return metadata
+
+
+def update_variables_metadata(grid):
+    """
+    Update metadata of the gridded variables.
+
+    Parameter:
+    ==========
+    grid: pyart.core.Grid
+        Gridded radar data.
+
+    Returns:
+    ========
+    grid: pyart.core.Grid
+        Gridded radar data with updated variables metadata.
+    """
+    try:
+        grid.fields['corrected_velocity']['standard_name'] = 'radial_velocity_of_scatterers_away_from_instrument'
+    except KeyError:
+        pass
+
+    grid.radar_latitude['standard_name'] = 'latitude'
+    grid.radar_latitude['coverage_content_type'] = 'coordinate'
+    grid.radar_longitude['standard_name'] = 'longitude'
+    grid.radar_longitude['coverage_content_type'] = 'coordinate'
+    grid.radar_altitude['standard_name'] = 'altitude'
+    grid.radar_altitude['coverage_content_type'] = 'coordinate'
+    grid.radar_time['standard_name'] = 'time'
+    grid.radar_time['coverage_content_type'] = 'coordinate'
+
+    grid.point_latitude['standard_name'] = 'latitude'
+    grid.point_latitude['coverage_content_type'] = 'coordinate'
+    grid.point_longitude['standard_name'] = 'longitude'
+    grid.point_longitude['coverage_content_type'] = 'coordinate'
+    grid.point_altitude['standard_name'] = 'altitude'
+    grid.point_altitude['coverage_content_type'] = 'coordinate'
+
+    return grid
 
 
 def gridding_radar_70km(radar, radar_date, outpath):
