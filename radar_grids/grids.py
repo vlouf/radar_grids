@@ -4,7 +4,7 @@ Gridding radar data using Barnes2 and a constant ROI from Py-ART
 @title: grids.py
 @author: Valentin Louf <valentin.louf@monash.edu>
 @institutions: Monash University and the Australian Bureau of Meteorology
-@date: 16/03/2020
+@date: 06/06/2020
 
 .. autosummary::
     :toctree: generated/
@@ -21,10 +21,30 @@ import uuid
 import datetime
 
 # Other libraries.
-import crayons
 import pyart
+import cftime
+import crayons
 import netCDF4
 import numpy as np
+
+
+def update_metadata(radar):
+    today = datetime.datetime.utcnow()
+    dtime = cftime.num2pydate(radar.time['data'], radar.time['units'])
+
+    metadata = {'comment': 'Gridded radar volume using Barnes et al. ROI',
+                'geospatial_vertical_min': 0,
+                'geospatial_vertical_max': 20000,
+                'geospatial_vertical_positive': 'up',
+                'time_coverage_start': dtime[0].isoformat(),
+                'time_coverage_end': dtime[-1].isoformat(),}
+
+    metadata['history'] = "created by Valentin Louf on raijin.nci.org.au at " + today.isoformat() + " using Py-ART"
+    metadata['processing_level'] = 'b2'
+    metadata['uuid'] = str(uuid.uuid4())
+    metadata['field_names'] = ", ".join([k for k in radar.fields.keys()])
+
+    return metadata
 
 
 def mkdir(dirpath):
@@ -92,15 +112,10 @@ def gridding_radar_70km(radar, radar_date, outpath):
         pass
 
     # Metadata
-    today = datetime.datetime.utcnow()
-    metadata = grid_70km.metadata.copy()
-    metadata['history'] = "created by Valentin Louf on raijin.nci.org.au at " + today.isoformat() + " using Py-ART"
-    metadata['processing_level'] = 'b2'
-    metadata['title'] = "Gridded radar volume on a 70x70x20km grid from CPOL"
-    metadata['uuid'] = str(uuid.uuid4())
-    metadata['field_names'] = ", ".join([k for k in grid_70km.fields.keys()])
-
-    grid_70km.metadata = metadata
+    metadata = update_metadata(grid_70km)
+    for k, v in metadata.items():
+        grid_70km.metadata[k] = v
+    grid_70km.metadata['title'] = "Gridded radar volume on a 70x70x20km grid"
 
     # Saving data.
     pyart.io.write_grid(outfilename, grid_70km, write_point_lon_lat_alt=True)
@@ -160,15 +175,10 @@ def gridding_radar_150km(radar, radar_date, outpath):
         pass
 
     # Metadata
-    today = datetime.datetime.utcnow()
-    metadata = grid_150km.metadata.copy()
-    metadata['history'] = "created by Valentin Louf on raijin.nci.org.au at " + today.isoformat() + " using Py-ART"
-    metadata['processing_level'] = 'b2'
-    metadata['title'] = "Gridded radar volume on a 150x150x20km grid from CPOL"
-    metadata['uuid'] = str(uuid.uuid4())
-    metadata['field_names'] = ", ".join([k for k in grid_150km.fields.keys()])
-
-    grid_150km.metadata = metadata
+    metadata = update_metadata(grid_150km)
+    for k, v in metadata.items():
+        grid_150km.metadata[k] = v
+    grid_150km.metadata['title'] = "Gridded radar volume on a 150x150x20km grid"
 
     # Saving data.
     pyart.io.write_grid(outfilename, grid_150km, write_point_lon_lat_alt=True)
