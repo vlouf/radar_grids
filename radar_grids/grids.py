@@ -24,7 +24,6 @@ import datetime
 import pyart
 import cftime
 import crayons
-import netCDF4
 import numpy as np
 
 
@@ -98,29 +97,29 @@ def gridding_radar_70km(radar, radar_date, outpath):
     my_gatefilter.exclude_masked('reflectivity')
 
     # Gridding
-    grid_70km = pyart.map.grid_from_radars(
+    grid = pyart.map.grid_from_radars(
         radar, gatefilters=my_gatefilter,
         grid_shape=(41, 141, 141),
         grid_limits=((0, 20000), (-70000.0, 70000.0), (-70000.0, 70000.0)),
         gridding_algo="map_gates_to_grid", weighting_function='Barnes2', roi_func='constant', constant_roi=1000,)
 
     # Removing obsolete fields
-    grid_70km.fields.pop('ROI')
+    grid.fields.pop('ROI')
     try:
-        grid_70km.fields.pop('raw_velocity')
+        grid.fields.pop('raw_velocity')
     except KeyError:
         pass
 
     # Metadata
-    metadata = update_metadata(grid_70km)
+    metadata = update_metadata(grid)
     for k, v in metadata.items():
-        grid_70km.metadata[k] = v
-    grid_70km.metadata['title'] = "Gridded radar volume on a 70x70x20km grid"
+        grid.metadata[k] = v
+    grid.metadata['title'] = "Gridded radar volume on a 70x70x20km grid"
 
     # Saving data.
-    pyart.io.write_grid(outfilename, grid_70km, write_point_lon_lat_alt=True)
+    pyart.io.write_grid(outfilename, grid, write_point_lon_lat_alt=True)
 
-    del grid_70km
+    del grid
     return None
 
 
@@ -161,29 +160,29 @@ def gridding_radar_150km(radar, radar_date, outpath):
     my_gatefilter.exclude_masked('reflectivity')
 
     # Gridding
-    grid_150km = pyart.map.grid_from_radars(
+    grid = pyart.map.grid_from_radars(
         radar, gatefilters=my_gatefilter,
         grid_shape=(41, 117, 117),
         grid_limits=((0, 20000), (-145000.0, 145000.0), (-145000.0, 145000.0)),
         gridding_algo="map_gates_to_grid", weighting_function='Barnes2', roi_func='constant', constant_roi=2500,)
 
     # Removing obsolete fields
-    grid_150km.fields.pop('ROI')
+    grid.fields.pop('ROI')
     try:
-        grid_150km.fields.pop('raw_velocity')
+        grid.fields.pop('raw_velocity')
     except KeyError:
         pass
 
     # Metadata
-    metadata = update_metadata(grid_150km)
+    metadata = update_metadata(grid)
     for k, v in metadata.items():
-        grid_150km.metadata[k] = v
-    grid_150km.metadata['title'] = "Gridded radar volume on a 150x150x20km grid"
+        grid.metadata[k] = v
+    grid.metadata['title'] = "Gridded radar volume on a 150x150x20km grid"
 
     # Saving data.
-    pyart.io.write_grid(outfilename, grid_150km, write_point_lon_lat_alt=True)
+    pyart.io.write_grid(outfilename, grid, write_point_lon_lat_alt=True)
 
-    del grid_150km
+    del grid
     return None
 
 
