@@ -166,6 +166,7 @@ def gridding_radar_70km(radar, radar_date, outpath):
     for k, v in metadata.items():
         grid.metadata[k] = v
     grid.metadata['title'] = "Gridded radar volume on a 70x70x20km grid"
+    grid = update_variables_metadata(grid)
 
     # Saving data.
     pyart.io.write_grid(outfilename, grid, write_point_lon_lat_alt=True)
@@ -229,6 +230,7 @@ def gridding_radar_150km(radar, radar_date, outpath):
     for k, v in metadata.items():
         grid.metadata[k] = v
     grid.metadata['title'] = "Gridded radar volume on a 150x150x20km grid"
+    grid = update_variables_metadata(grid)
 
     # Saving data.
     pyart.io.write_grid(outfilename, grid, write_point_lon_lat_alt=True)
