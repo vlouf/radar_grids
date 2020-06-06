@@ -4,12 +4,13 @@ Gridding radar data using Barnes2 and a constant ROI from Py-ART
 @title: grids.py
 @author: Valentin Louf <valentin.louf@monash.edu>
 @institutions: Monash University and the Australian Bureau of Meteorology
-@date: 16/03/2020
+@date: 06/06/2020
 
 .. autosummary::
     :toctree: generated/
 
     mkdir
+    update_metadata
     gridding_radar_70km
     gridding_radar_150km
     radar_gridding
@@ -21,13 +22,12 @@ import uuid
 import datetime
 
 # Other libraries.
-import crayons
 import pyart
-import netCDF4
+import cftime
 import numpy as np
 
 
-def mkdir(dirpath):
+def mkdir(dirpath: str):
     '''
     Create directory. Check if directory exists and handles error.
     '''
@@ -39,6 +39,37 @@ def mkdir(dirpath):
             pass
 
     return None
+
+
+def update_metadata(radar) -> dict:
+    """
+    Update metadata of the gridded products.
+
+    Parameter:
+    ==========
+    radar: pyart.core.Grid
+        Radar data.
+
+    Returns:
+    ========
+    metadata: dict
+        Output metadata dictionnary.
+    """
+    today = datetime.datetime.utcnow()
+    dtime = cftime.num2pydate(radar.time['data'], radar.time['units'])
+
+    metadata = {'comment': 'Gridded radar volume using Barnes et al. ROI',
+                'field_names': ", ".join([k for k in radar.fields.keys()]),
+                'geospatial_vertical_min': 0,
+                'geospatial_vertical_max': 20000,
+                'geospatial_vertical_positive': 'up',
+                'history': f"created by Valentin Louf on gadi.nci.org.au at {today.isoformat()} using Py-ART",
+                'processing_level': 'b2',
+                'time_coverage_start': dtime[0].isoformat(),
+                'time_coverage_end': dtime[-1].isoformat(),
+                'uuid': str(uuid.uuid4()),}
+
+    return metadata
 
 
 def gridding_radar_70km(radar, radar_date, outpath):
@@ -78,34 +109,29 @@ def gridding_radar_70km(radar, radar_date, outpath):
     my_gatefilter.exclude_masked('reflectivity')
 
     # Gridding
-    grid_70km = pyart.map.grid_from_radars(
+    grid = pyart.map.grid_from_radars(
         radar, gatefilters=my_gatefilter,
         grid_shape=(41, 141, 141),
         grid_limits=((0, 20000), (-70000.0, 70000.0), (-70000.0, 70000.0)),
         gridding_algo="map_gates_to_grid", weighting_function='Barnes2', roi_func='constant', constant_roi=1000,)
 
     # Removing obsolete fields
-    grid_70km.fields.pop('ROI')
+    grid.fields.pop('ROI')
     try:
-        grid_70km.fields.pop('raw_velocity')
+        grid.fields.pop('raw_velocity')
     except KeyError:
         pass
 
     # Metadata
-    today = datetime.datetime.utcnow()
-    metadata = grid_70km.metadata.copy()
-    metadata['history'] = "created by Valentin Louf on raijin.nci.org.au at " + today.isoformat() + " using Py-ART"
-    metadata['processing_level'] = 'b2'
-    metadata['title'] = "Gridded radar volume on a 70x70x20km grid from CPOL"
-    metadata['uuid'] = str(uuid.uuid4())
-    metadata['field_names'] = ", ".join([k for k in grid_70km.fields.keys()])
-
-    grid_70km.metadata = metadata
+    metadata = update_metadata(grid)
+    for k, v in metadata.items():
+        grid.metadata[k] = v
+    grid.metadata['title'] = "Gridded radar volume on a 70x70x20km grid"
 
     # Saving data.
-    pyart.io.write_grid(outfilename, grid_70km, write_point_lon_lat_alt=True)
+    pyart.io.write_grid(outfilename, grid, write_point_lon_lat_alt=True)
 
-    del grid_70km
+    del grid
     return None
 
 
@@ -146,34 +172,29 @@ def gridding_radar_150km(radar, radar_date, outpath):
     my_gatefilter.exclude_masked('reflectivity')
 
     # Gridding
-    grid_150km = pyart.map.grid_from_radars(
+    grid = pyart.map.grid_from_radars(
         radar, gatefilters=my_gatefilter,
         grid_shape=(41, 117, 117),
         grid_limits=((0, 20000), (-145000.0, 145000.0), (-145000.0, 145000.0)),
         gridding_algo="map_gates_to_grid", weighting_function='Barnes2', roi_func='constant', constant_roi=2500,)
 
     # Removing obsolete fields
-    grid_150km.fields.pop('ROI')
+    grid.fields.pop('ROI')
     try:
-        grid_150km.fields.pop('raw_velocity')
+        grid.fields.pop('raw_velocity')
     except KeyError:
         pass
 
     # Metadata
-    today = datetime.datetime.utcnow()
-    metadata = grid_150km.metadata.copy()
-    metadata['history'] = "created by Valentin Louf on raijin.nci.org.au at " + today.isoformat() + " using Py-ART"
-    metadata['processing_level'] = 'b2'
-    metadata['title'] = "Gridded radar volume on a 150x150x20km grid from CPOL"
-    metadata['uuid'] = str(uuid.uuid4())
-    metadata['field_names'] = ", ".join([k for k in grid_150km.fields.keys()])
-
-    grid_150km.metadata = metadata
+    metadata = update_metadata(grid)
+    for k, v in metadata.items():
+        grid.metadata[k] = v
+    grid.metadata['title'] = "Gridded radar volume on a 150x150x20km grid"
 
     # Saving data.
-    pyart.io.write_grid(outfilename, grid_150km, write_point_lon_lat_alt=True)
+    pyart.io.write_grid(outfilename, grid, write_point_lon_lat_alt=True)
 
-    del grid_150km
+    del grid
     return None
 
 
@@ -191,7 +212,8 @@ def gridding(infile, output_directory):
     """
     sttime = time.time()
     radar = pyart.io.read(infile)
-    radar_start_date = netCDF4.num2date(radar.time['data'][0], radar.time['units'].replace("since", "since "))
+    radar_start_date = cftime.num2pydate(radar.time['data'][0],
+                                         radar.time['units'].replace("since", "since "))
 
     obsolete_keys = ["total_power", ]
     for key in obsolete_keys:
@@ -212,7 +234,7 @@ def gridding(infile, output_directory):
     mkdir(outpath_70)
     gridding_radar_70km(radar, radar_start_date, outpath_70)
 
-    print(crayons.green(f"{os.path.basename(infile)} processed in {time.time() - sttime:0.2f}."))
+    print(f"{os.path.basename(infile)} processed in {time.time() - sttime:0.2f}.")
 
     del radar
     return None
