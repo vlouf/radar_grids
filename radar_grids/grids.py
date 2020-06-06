@@ -8,7 +8,7 @@ Gridding radar data using Barnes2 and a constant ROI from Py-ART
 
 .. autosummary::
     :toctree: generated/
-    
+
     mkdir
     update_metadata
     gridding_radar_70km
@@ -59,16 +59,15 @@ def update_metadata(radar) -> dict:
     dtime = cftime.num2pydate(radar.time['data'], radar.time['units'])
 
     metadata = {'comment': 'Gridded radar volume using Barnes et al. ROI',
+                'field_names': ", ".join([k for k in radar.fields.keys()]),
                 'geospatial_vertical_min': 0,
                 'geospatial_vertical_max': 20000,
                 'geospatial_vertical_positive': 'up',
+                'history': f"created by Valentin Louf on gadi.nci.org.au at {today.isoformat()} using Py-ART",
+                'processing_level': 'b2',
                 'time_coverage_start': dtime[0].isoformat(),
-                'time_coverage_end': dtime[-1].isoformat(),}
-
-    metadata['history'] = "created by Valentin Louf on raijin.nci.org.au at " + today.isoformat() + " using Py-ART"
-    metadata['processing_level'] = 'b2'
-    metadata['uuid'] = str(uuid.uuid4())
-    metadata['field_names'] = ", ".join([k for k in radar.fields.keys()])
+                'time_coverage_end': dtime[-1].isoformat(),
+                'uuid': str(uuid.uuid4()),}
 
     return metadata
 
@@ -213,7 +212,7 @@ def gridding(infile, output_directory):
     """
     sttime = time.time()
     radar = pyart.io.read(infile)
-    radar_start_date = cftime.num2pydate(radar.time['data'][0], 
+    radar_start_date = cftime.num2pydate(radar.time['data'][0],
                                          radar.time['units'].replace("since", "since "))
 
     obsolete_keys = ["total_power", ]
