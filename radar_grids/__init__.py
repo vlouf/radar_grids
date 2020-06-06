@@ -1,1 +1,1 @@
-from .radar_grids import gridding
+from .grids import gridding
