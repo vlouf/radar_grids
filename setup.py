@@ -19,7 +19,6 @@ REQUIRED = [
     "arm_pyart",
     "numpy",
     "netCDF4",
-    "crayons",
     "dask",
 ]
 

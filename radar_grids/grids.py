@@ -24,7 +24,6 @@ import datetime
 # Other libraries.
 import pyart
 import cftime
-import crayons
 import numpy as np
 
 
@@ -236,7 +235,7 @@ def gridding(infile, output_directory):
     mkdir(outpath_70)
     gridding_radar_70km(radar, radar_start_date, outpath_70)
 
-    print(crayons.green(f"{os.path.basename(infile)} processed in {time.time() - sttime:0.2f}."))
+    print(f"{os.path.basename(infile)} processed in {time.time() - sttime:0.2f}.")
 
     del radar
     return None
