@@ -201,7 +201,8 @@ def gridding(infile, output_directory):
     """
     sttime = time.time()
     radar = pyart.io.read(infile)
-    radar_start_date = netCDF4.num2date(radar.time['data'][0], radar.time['units'].replace("since", "since "))
+    radar_start_date = cftime.num2pydate(radar.time['data'][0], 
+                                         radar.time['units'].replace("since", "since "))
 
     obsolete_keys = ["total_power", ]
     for key in obsolete_keys:
