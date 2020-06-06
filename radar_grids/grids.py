@@ -61,7 +61,7 @@ def update_metadata(radar) -> dict:
 
     metadata = {'comment': 'Gridded radar volume using Barnes et al. ROI',
                 'field_names': ", ".join([k for k in radar.fields.keys()]),
-                'geospatial_vertical_min': radar.altitude['data'][0],
+                'geospatial_vertical_min': 50,
                 'geospatial_vertical_max': 20000,
                 'geospatial_vertical_positive': 'up',
                 'history': f"created by Valentin Louf on gadi.nci.org.au at {today.isoformat()} using Py-ART",
