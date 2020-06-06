@@ -8,8 +8,9 @@ Gridding radar data using Barnes2 and a constant ROI from Py-ART
 
 .. autosummary::
     :toctree: generated/
-
+    
     mkdir
+    update_metadata
     gridding_radar_70km
     gridding_radar_150km
     radar_gridding
@@ -27,7 +28,34 @@ import crayons
 import numpy as np
 
 
-def update_metadata(radar):
+def mkdir(dirpath: str):
+    '''
+    Create directory. Check if directory exists and handles error.
+    '''
+    if not os.path.exists(dirpath):
+        # Might seem redundant, but the multiprocessing creates error.
+        try:
+            os.mkdir(dirpath)
+        except FileExistsError:
+            pass
+
+    return None
+
+
+def update_metadata(radar) -> dict:
+    """
+    Update metadata of the gridded products.
+
+    Parameter:
+    ==========
+    radar: pyart.core.Grid
+        Radar data.
+
+    Returns:
+    ========
+    metadata: dict
+        Output metadata dictionnary.
+    """
     today = datetime.datetime.utcnow()
     dtime = cftime.num2pydate(radar.time['data'], radar.time['units'])
 
@@ -44,20 +72,6 @@ def update_metadata(radar):
     metadata['field_names'] = ", ".join([k for k in radar.fields.keys()])
 
     return metadata
-
-
-def mkdir(dirpath):
-    '''
-    Create directory. Check if directory exists and handles error.
-    '''
-    if not os.path.exists(dirpath):
-        # Might seem redundant, but the multiprocessing creates error.
-        try:
-            os.mkdir(dirpath)
-        except FileExistsError:
-            pass
-
-    return None
 
 
 def gridding_radar_70km(radar, radar_date, outpath):
