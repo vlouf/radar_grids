@@ -100,6 +100,10 @@ venv.bak/
 # mkdocs documentation
 /site
 
+# PBS files
+*.pbs
+*.pbs.*
+
 # mypy
 .mypy_cache/
 .vscode
