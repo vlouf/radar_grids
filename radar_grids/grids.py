@@ -29,9 +29,9 @@ import numpy as np
 
 
 def mkdir(dirpath: str):
-    '''
+    """
     Create directory. Check if directory exists and handles error.
-    '''
+    """
     if not os.path.exists(dirpath):
         # Might seem redundant, but the multiprocessing creates error.
         try:
@@ -57,18 +57,20 @@ def update_metadata(radar) -> dict:
         Output metadata dictionnary.
     """
     today = datetime.datetime.utcnow()
-    dtime = cftime.num2pydate(radar.time['data'], radar.time['units'])
+    dtime = cftime.num2pydate(radar.time["data"], radar.time["units"])
 
-    metadata = {'comment': 'Gridded radar volume using Barnes et al. ROI',
-                'field_names': ", ".join([k for k in radar.fields.keys()]),
-                'geospatial_vertical_min': radar.origin_altitude['data'][0],
-                'geospatial_vertical_max': 20000,
-                'geospatial_vertical_positive': 'up',
-                'history': f"created by Valentin Louf on gadi.nci.org.au at {today.isoformat()} using Py-ART",
-                'processing_level': 'b2',
-                'time_coverage_start': dtime[0].isoformat(),
-                'time_coverage_end': dtime[-1].isoformat(),
-                'uuid': str(uuid.uuid4()),}
+    metadata = {
+        "comment": "Gridded radar volume using Barnes et al. ROI",
+        "field_names": ", ".join([k for k in radar.fields.keys()]),
+        "geospatial_vertical_min": radar.origin_altitude["data"][0],
+        "geospatial_vertical_max": 20000,
+        "geospatial_vertical_positive": "up",
+        "history": f"created by Valentin Louf on gadi.nci.org.au at {today.isoformat()} using Py-ART",
+        "processing_level": "b2",
+        "time_coverage_start": dtime[0].isoformat(),
+        "time_coverage_end": dtime[-1].isoformat(),
+        "uuid": str(uuid.uuid4()),
+    }
 
     return metadata
 
@@ -88,37 +90,39 @@ def update_variables_metadata(grid):
         Gridded radar data with updated variables metadata.
     """
     try:
-        grid.fields['corrected_velocity']['standard_name'] = 'radial_velocity_of_scatterers_away_from_instrument'
+        grid.fields["corrected_velocity"]["standard_name"] = "radial_velocity_of_scatterers_away_from_instrument"
     except KeyError:
         pass
 
-    grid.radar_latitude['standard_name'] = 'latitude'
-    grid.radar_latitude['coverage_content_type'] = 'coordinate'
-    grid.radar_longitude['standard_name'] = 'longitude'
-    grid.radar_longitude['coverage_content_type'] = 'coordinate'
-    grid.radar_altitude['standard_name'] = 'altitude'
-    grid.radar_altitude['coverage_content_type'] = 'coordinate'
-    grid.radar_time['standard_name'] = 'time'
-    grid.radar_time['coverage_content_type'] = 'coordinate'
+    grid.radar_latitude["standard_name"] = "latitude"
+    grid.radar_latitude["coverage_content_type"] = "coordinate"
+    grid.radar_longitude["standard_name"] = "longitude"
+    grid.radar_longitude["coverage_content_type"] = "coordinate"
+    grid.radar_altitude["standard_name"] = "altitude"
+    grid.radar_altitude["coverage_content_type"] = "coordinate"
+    grid.radar_time["standard_name"] = "time"
+    grid.radar_time["coverage_content_type"] = "coordinate"
 
-    grid.point_latitude['standard_name'] = 'latitude'
-    grid.point_latitude['coverage_content_type'] = 'coordinate'
-    grid.point_longitude['standard_name'] = 'longitude'
-    grid.point_longitude['coverage_content_type'] = 'coordinate'
-    grid.point_altitude['standard_name'] = 'altitude'
-    grid.point_altitude['coverage_content_type'] = 'coordinate'
+    grid.point_latitude["standard_name"] = "latitude"
+    grid.point_latitude["coverage_content_type"] = "coordinate"
+    grid.point_longitude["standard_name"] = "longitude"
+    grid.point_longitude["coverage_content_type"] = "coordinate"
+    grid.point_altitude["standard_name"] = "altitude"
+    grid.point_altitude["coverage_content_type"] = "coordinate"
 
     return grid
 
 
-def grid_radar(radar,
-               outpath=None,
-               refl_name="corrected_reflectivity",
-               grid_shape=(41, 117, 117),
-               grid_xlim=(-150000, 150000),
-               grid_ylim=(-150000, 150000),
-               grid_zlim=(0, 20000),
-               constant_roi=2500):
+def grid_radar(
+    radar,
+    outpath=None,
+    refl_name="corrected_reflectivity",
+    grid_shape=(41, 117, 117),
+    grid_xlim=(-150000, 150000),
+    grid_ylim=(-150000, 150000),
+    grid_zlim=(0, 20000),
+    constant_roi=2500,
+):
     """
     Map a single radar to a Cartesian grid.
 
@@ -146,7 +150,7 @@ def grid_radar(radar,
         If the outpath has been set to None, then it will return the grid,
         otherwise it just saves it and return nothing.
     """
-    date = cftime.num2pydate(radar.time['data'][0], radar.time['units'])
+    date = cftime.num2pydate(radar.time["data"][0], radar.time["units"])
     if outpath is not None:
         datetimestr = date.strftime("%Y%m%d.%H%M")
         outfilename = "twp10cpolgrid70.b2.{}00.nc".format(datetimestr)
@@ -154,7 +158,7 @@ def grid_radar(radar,
     else:
         outfilename = None
 
-     # exclude masked gates from the gridding
+    # exclude masked gates from the gridding
     gatefilter = pyart.filters.GateFilter(radar)
     gatefilter.exclude_transition()
     gatefilter.exclude_masked(refl_name)
@@ -166,15 +170,15 @@ def grid_radar(radar,
         grid_shape=grid_shape,
         grid_limits=(grid_zlim, grid_xlim, grid_ylim),
         gridding_algo="map_gates_to_grid",
-        weighting_function='Barnes2',
-        roi_func='constant',
-        constant_roi=constant_roi
+        weighting_function="Barnes2",
+        roi_func="constant",
+        constant_roi=constant_roi,
     )
 
     # Removing obsolete fields
-    grid.fields.pop('ROI')
+    grid.fields.pop("ROI")
     try:
-        grid.fields.pop('raw_velocity')
+        grid.fields.pop("raw_velocity")
     except KeyError:
         pass
 
@@ -182,7 +186,7 @@ def grid_radar(radar,
     metadata = update_metadata(grid)
     for k, v in metadata.items():
         grid.metadata[k] = v
-    grid.metadata['title'] = f"Gridded radar volume on a {max(grid_xlim)}x{max(grid_ylim)}x{max(grid_zlim)}km grid"
+    grid.metadata["title"] = f"Gridded radar volume on a {max(grid_xlim)}x{max(grid_ylim)}x{max(grid_zlim)}km grid"
     grid = update_variables_metadata(grid)
 
     # Saving data.
@@ -205,7 +209,7 @@ def standart_gridding(infile, output_directory, refl_name="corrected_reflectivit
         Inpute radar file
     output_directory: str
         Ouput directory.
-    """    
+    """
     try:
         if infile.lower().endswith(("h5", "hdf")):
             radar = pyart.aux_io.read_odim_h5(infile, file_field_names=True)
@@ -216,8 +220,7 @@ def standart_gridding(infile, output_directory, refl_name="corrected_reflectivit
         traceback.print_exc()
         return None
 
-    radar_date = cftime.num2pydate(radar.time['data'][0], 
-                                   radar.time['units'])
+    radar_date = cftime.num2pydate(radar.time["data"][0], radar.time["units"])
     year = str(radar_date.year)
     datestr = radar_date.strftime("%Y%m%d")
     # 150 km 2500m resolution
@@ -229,14 +232,16 @@ def standart_gridding(infile, output_directory, refl_name="corrected_reflectivit
     mkdir(outpath)
 
     try:
-        grid_radar(radar,
-                outpath=outpath,
-                refl_name=refl_name,
-                grid_shape=(41, 117, 117),
-                grid_xlim=(-150000, 150000),
-                grid_ylim=(-150000, 150000),
-                grid_zlim=(0, 20000),
-                constant_roi=2500)
+        grid_radar(
+            radar,
+            outpath=outpath,
+            refl_name=refl_name,
+            grid_shape=(41, 117, 117),
+            grid_xlim=(-150000, 150000),
+            grid_ylim=(-150000, 150000),
+            grid_zlim=(0, 20000),
+            constant_roi=2500,
+        )
     except Exception:
         traceback.print_exc()
         pass
@@ -250,14 +255,16 @@ def standart_gridding(infile, output_directory, refl_name="corrected_reflectivit
     mkdir(outpath)
 
     try:
-        grid_radar(radar,
-                outpath=outpath,
-                refl_name=refl_name,
-                grid_shape=(41, 301, 301),
-                grid_xlim=(-150000, 150000),
-                grid_ylim=(-150000, 150000),
-                grid_zlim=(0, 20000),
-                constant_roi=2500)
+        grid_radar(
+            radar,
+            outpath=outpath,
+            refl_name=refl_name,
+            grid_shape=(41, 301, 301),
+            grid_xlim=(-150000, 150000),
+            grid_ylim=(-150000, 150000),
+            grid_zlim=(0, 20000),
+            constant_roi=2500,
+        )
     except Exception:
         traceback.print_exc()
         pass
