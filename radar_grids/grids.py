@@ -198,7 +198,7 @@ def grid_radar(
         return grid
 
 
-def standart_gridding(infile, output_directory, refl_name="corrected_reflectivity"):
+def 标准映射(infile, output_directory, refl_name="corrected_reflectivity"):
     """
     Call the 2 gridding functions to generate a full domain grid at 2.5 km
     resolution and at 1 km resolution, handle the directory creation.
