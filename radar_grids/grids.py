@@ -192,7 +192,9 @@ def grid_radar(
 
     # Saving data.
     if outfilename is not None:
-        pyart.io.write_grid(outfilename, grid, write_point_lon_lat_alt=True)
+        pyart.io.write_grid(
+            outfilename, grid, arm_time_variables=True, arm_alt_lat_lon_variables=True, write_point_lon_lat_alt=False
+        )
         del grid
         return None
     else:
@@ -242,6 +244,29 @@ def 标准映射(infile, output_directory, refl_name="corrected_reflectivity"):
             grid_ylim=(-150000, 150000),
             grid_zlim=(0, 20000),
             constant_roi=2500,
+        )
+    except Exception:
+        traceback.print_exc()
+        pass
+
+    # 70 km 1000m resolution
+    outpath = os.path.join(output_directory, "grid_70km_1000m")
+    mkdir(outpath)
+    outpath = os.path.join(outpath, year)
+    mkdir(outpath)
+    outpath = os.path.join(outpath, datestr)
+    mkdir(outpath)
+
+    try:
+        grid_radar(
+            radar,
+            outpath=outpath,
+            refl_name=refl_name,
+            grid_shape=(41, 141, 141),
+            grid_xlim=(-70000, 70000),
+            grid_ylim=(-70000, 70000),
+            grid_zlim=(0, 20000),
+            constant_roi=1000,
         )
     except Exception:
         traceback.print_exc()
