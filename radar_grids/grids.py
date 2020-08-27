@@ -152,6 +152,11 @@ def grid_radar(
         If the outpath has been set to None, then it will return the grid,
         otherwise it just saves it and return nothing.
     """
+    # Update radar dtype:
+    radar.altitude['data'] = radar.altitude['data'].astype(np.float64)
+    radar.longitude['data'] = radar.longitude['data'].astype(np.float64)
+    radar.latitude['data'] = radar.latitude['data'].astype(np.float64)
+
     date = cftime.num2pydate(radar.time["data"][0], radar.time["units"])
     if outpath is not None:
         datetimestr = date.strftime("%Y%m%d.%H%M")
