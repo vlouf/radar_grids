@@ -116,6 +116,7 @@ def update_variables_metadata(grid):
 def grid_radar(
     radar,
     outpath=None,
+    prefix="rvopolgrid",
     refl_name="corrected_reflectivity",
     grid_shape=(41, 117, 117),
     grid_xlim=(-150000, 150000),
@@ -153,7 +154,7 @@ def grid_radar(
     date = cftime.num2pydate(radar.time["data"][0], radar.time["units"])
     if outpath is not None:
         datetimestr = date.strftime("%Y%m%d.%H%M")
-        outfilename = "twp10cpolgrid70.b2.{}00.nc".format(datetimestr)
+        outfilename = f"{prefix}.b2.{datetimestr}00.nc"
         outfilename = os.path.join(outpath, outfilename)
     else:
         outfilename = None
