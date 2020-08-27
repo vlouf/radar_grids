@@ -221,7 +221,7 @@ def grid_radar(
         return grid
 
 
-def 标准映射(infile, output_directory, refl_name="corrected_reflectivity"):
+def 标准映射(infile, output_directory, prefix="rvopolgrid", refl_name="corrected_reflectivity"):
     """
     Call the 2 gridding functions to generate a full domain grid at 2.5 km
     resolution and at 1 km resolution, handle the directory creation.
@@ -259,6 +259,7 @@ def 标准映射(infile, output_directory, refl_name="corrected_reflectivity"):
             radar,
             outpath=outpath,
             refl_name=refl_name,
+            prefix=prefix,
             grid_shape=(41, 117, 117),
             grid_xlim=(-150000, 150000),
             grid_ylim=(-150000, 150000),
@@ -282,6 +283,7 @@ def 标准映射(infile, output_directory, refl_name="corrected_reflectivity"):
             radar,
             outpath=outpath,
             refl_name=refl_name,
+            prefix=prefix,
             grid_shape=(41, 141, 141),
             grid_xlim=(-70000, 70000),
             grid_ylim=(-70000, 70000),
@@ -305,6 +307,7 @@ def 标准映射(infile, output_directory, refl_name="corrected_reflectivity"):
             radar,
             outpath=outpath,
             refl_name=refl_name,
+            prefix=prefix,
             grid_shape=(41, 301, 301),
             grid_xlim=(-150000, 150000),
             grid_ylim=(-150000, 150000),
