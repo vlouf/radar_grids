@@ -25,6 +25,7 @@ import traceback
 # Other libraries.
 import pyart
 import cftime
+import netCDF4
 import numpy as np
 
 
@@ -193,8 +194,22 @@ def grid_radar(
     # Saving data.
     if outfilename is not None:
         pyart.io.write_grid(
-            outfilename, grid, arm_time_variables=True, arm_alt_lat_lon_variables=True, write_point_lon_lat_alt=False
+            outfilename, grid, arm_time_variables=True, write_point_lon_lat_alt=False
         )
+        # append ROI and lat/long 2D grids and update metadata
+        lon_data,  lat_data = grid.get_point_longitude_latitude(0)
+        with netCDF4.Dataset(outfilename, 'a') as ncid:
+            nclon = ncid.createVariable('longitude', np.float32, ('y', 'x'), zlib=True, least_significant_digit=2)
+            nclon[:] = lon_data
+            nclon.units = 'degrees_east'
+            nclon.standard_name = 'longitude'
+            nclon.long_name = 'longitude_degrees_east'
+            nclat = ncid.createVariable('latitude', np.float32, ('y', 'x'), zlib=True, least_significant_digit=2)
+            nclat[:] = lat_data
+            nclat.units = 'degrees_north'
+            nclat.standard_name = 'latitude'
+            nclat.long_name = 'latitude_degrees_north'
+
         del grid
         return None
     else:
