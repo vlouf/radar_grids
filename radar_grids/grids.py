@@ -4,7 +4,7 @@ Gridding radar data using Barnes2 and a constant ROI from Py-ART
 @title: grids.py
 @author: Valentin Louf <valentin.louf@monash.edu>
 @institutions: Monash University and the Australian Bureau of Meteorology
-@date: 06/06/2020
+@date: 27/08/2020
 
 .. autosummary::
     :toctree: generated/
@@ -12,15 +12,15 @@ Gridding radar data using Barnes2 and a constant ROI from Py-ART
     mkdir
     update_metadata
     update_variables_metadata
-    gridding_radar_70km
-    gridding_radar_150km
-    radar_gridding
+    grid_radar
+    multiple_gridding
 """
 # Standard Library
 import os
 import time
 import uuid
 import datetime
+import traceback
 
 # Other libraries.
 import pyart
@@ -111,48 +111,65 @@ def update_variables_metadata(grid):
     return grid
 
 
-def gridding_radar_70km(radar, radar_date, outpath):
+def grid_radar(radar,
+               outpath=None,
+               refl_name="corrected_reflectivity",
+               grid_shape=(41, 117, 117),
+               grid_xlim=(-150000, 150000),
+               grid_ylim=(-150000, 150000),
+               grid_zlim=(0, 20000),
+               constant_roi=2500):
     """
-    Map a single radar to a Cartesian grid of 70 km range and 2.5 km resolution.
+    Map a single radar to a Cartesian grid.
 
     Parameters:
     ===========
     radar:
         Py-ART radar structure.
-    radar_date: datetime
-        Datetime stucture of the radar data.
     outpath: str
-        Ouput directory.
+        If outpath is not define, it will return the grid and not save it. If
+        it is defined, then it will save the grid and return nothing.
+    grid_shape: tuple
+        Grid shape
+    grid_xlim: tuple
+        Grid limits in the x-axis.
+    grid_ylim: tuple
+        Grid limits in the y-axis.
+    grid_zlim: tuple
+        Grid limits in the z-axis.
+    constant_roi: float
+        Value for the size of the radius of influence.
+
+    Returns:
+    ========
+    grid: pyart.core.Grid
+        If the outpath has been set to None, then it will return the grid,
+        otherwise it just saves it and return nothing.
     """
-    # Extracting year, date, and datetime.
-    year = str(radar_date.year)
-    datestr = radar_date.strftime("%Y%m%d")
-    datetimestr = radar_date.strftime("%Y%m%d.%H%M")
-    fname = "twp10cpolgrid70.b2.{}00.nc".format(datetimestr)
+    date = cftime.num2pydate(radar.time['data'][0], radar.time['units'])
+    if outpath is not None:
+        datetimestr = date.strftime("%Y%m%d.%H%M")
+        outfilename = "twp10cpolgrid70.b2.{}00.nc".format(datetimestr)
+        outfilename = os.path.join(outpath, outfilename)
+    else:
+        outfilename = None
 
-    # Output directory
-    outdir_70km = os.path.join(outpath, year)
-    mkdir(outdir_70km)
-
-    outdir_70km = os.path.join(outdir_70km, datestr)
-    mkdir(outdir_70km)
-
-    # Output file name
-    outfilename = os.path.join(outdir_70km, fname)
-    if os.path.exists(outfilename):
-        return None
-
-    # exclude masked gates from the gridding
-    my_gatefilter = pyart.filters.GateFilter(radar)
-    my_gatefilter.exclude_transition()
-    my_gatefilter.exclude_masked('reflectivity')
+     # exclude masked gates from the gridding
+    gatefilter = pyart.filters.GateFilter(radar)
+    gatefilter.exclude_transition()
+    gatefilter.exclude_masked(refl_name)
 
     # Gridding
     grid = pyart.map.grid_from_radars(
-        radar, gatefilters=my_gatefilter,
-        grid_shape=(41, 141, 141),
-        grid_limits=((0, 20000), (-70000.0, 70000.0), (-70000.0, 70000.0)),
-        gridding_algo="map_gates_to_grid", weighting_function='Barnes2', roi_func='constant', constant_roi=1000,)
+        radar,
+        gatefilters=gatefilter,
+        grid_shape=grid_shape,
+        grid_limits=(grid_zlim, grid_xlim, grid_ylim),
+        gridding_algo="map_gates_to_grid",
+        weighting_function='Barnes2',
+        roi_func='constant',
+        constant_roi=constant_roi
+    )
 
     # Removing obsolete fields
     grid.fields.pop('ROI')
@@ -165,84 +182,22 @@ def gridding_radar_70km(radar, radar_date, outpath):
     metadata = update_metadata(grid)
     for k, v in metadata.items():
         grid.metadata[k] = v
-    grid.metadata['title'] = "Gridded radar volume on a 70x70x20km grid"
+    grid.metadata['title'] = f"Gridded radar volume on a {max(grid_xlim)}x{max(grid_ylim)}x{max(grid_zlim)}km grid"
     grid = update_variables_metadata(grid)
 
     # Saving data.
-    pyart.io.write_grid(outfilename, grid, write_point_lon_lat_alt=True)
-
-    del grid
-    return None
-
-
-def gridding_radar_150km(radar, radar_date, outpath):
-    """
-    Map a single radar to a Cartesian grid of 150 km range and 2.5 km resolution.
-
-    Parameters:
-    ===========
-        radar:
-            Py-ART radar structure.
-        radar_date: datetime
-            Datetime stucture of the radar data.
-        outpath: str
-            Ouput directory.
-    """
-    # Extracting year, date, and datetime.
-    year = str(radar_date.year)
-    datestr = radar_date.strftime("%Y%m%d")
-    datetimestr = radar_date.strftime("%Y%m%d.%H%M")
-    fname = "twp10cpolgrid150.b2.{}00.nc".format(datetimestr)
-
-    # Output directory
-    outdir_150km = os.path.join(outpath, year)
-    mkdir(outdir_150km)
-
-    outdir_150km = os.path.join(outdir_150km, datestr)
-    mkdir(outdir_150km)
-
-    # Output file name
-    outfilename = os.path.join(outdir_150km, fname)
-    if os.path.exists(outfilename):
+    if outfilename is not None:
+        pyart.io.write_grid(outfilename, grid, write_point_lon_lat_alt=True)
+        del grid
         return None
-
-    # exclude masked gates from the gridding
-    my_gatefilter = pyart.filters.GateFilter(radar)
-    my_gatefilter.exclude_transition()
-    my_gatefilter.exclude_masked('reflectivity')
-
-    # Gridding
-    grid = pyart.map.grid_from_radars(
-        radar, gatefilters=my_gatefilter,
-        grid_shape=(41, 117, 117),
-        grid_limits=((0, 20000), (-145000.0, 145000.0), (-145000.0, 145000.0)),
-        gridding_algo="map_gates_to_grid", weighting_function='Barnes2', roi_func='constant', constant_roi=2500,)
-
-    # Removing obsolete fields
-    grid.fields.pop('ROI')
-    try:
-        grid.fields.pop('raw_velocity')
-    except KeyError:
-        pass
-
-    # Metadata
-    metadata = update_metadata(grid)
-    for k, v in metadata.items():
-        grid.metadata[k] = v
-    grid.metadata['title'] = "Gridded radar volume on a 150x150x20km grid"
-    grid = update_variables_metadata(grid)
-
-    # Saving data.
-    pyart.io.write_grid(outfilename, grid, write_point_lon_lat_alt=True)
-
-    del grid
-    return None
+    else:
+        return grid
 
 
-def gridding(infile, output_directory):
+def standart_gridding(infile, output_directory, refl_name="corrected_reflectivity"):
     """
     Call the 2 gridding functions to generate a full domain grid at 2.5 km
-    resolution and a half-domain grid at 1 km resolution
+    resolution and at 1 km resolution, handle the directory creation.
 
     Parameters:
     ===========
@@ -252,30 +207,56 @@ def gridding(infile, output_directory):
         Ouput directory.
     """
     sttime = time.time()
-    radar = pyart.io.read(infile)
-    radar_start_date = cftime.num2pydate(radar.time['data'][0],
-                                         radar.time['units'].replace("since", "since "))
+    try:
+        if infile.lower().endswith(("h5", "hdf")):
+            radar = pyart.aux_io.read_odim_h5(infile, file_field_names=True)
+        else:
+            radar = pyart.io.read(infile)
 
-    obsolete_keys = ["total_power", ]
-    for key in obsolete_keys:
-        try:
-            radar.fields.pop(key)
-        except KeyError:
-            continue
+    radar_date = cftime.num2pydate(radar.time['data'][0], radar.time['units'].replace("since", "since "))
+    year = str(radar_date.year)
 
-    if "reflectivity" not in radar.fields.keys():
-        if "corrected_reflectivity" in radar.fields.keys():
-            radar.add_field("reflectivity", radar.fields.pop("corrected_reflectivity"))
+    # 150 km 2500m resolution
+    outpath = os.path.join(output_directory, "grid_150km_2500m")
+    mkdir(outpath)
+    outpath = os.path.join(outpath, year)
+    mkdir(outpath)
+    outpath = os.path.join(outpath, datestr)
+    mkdir(outpath)
 
-    outpath_150 = os.path.join(output_directory, "grid_150km_2500m")
-    mkdir(outpath_150)
-    gridding_radar_150km(radar, radar_start_date, outpath_150)
+    try:
+        grid_radar(radar,
+                outpath=outpath,
+                refl_name=refl_name,
+                grid_shape=(41, 117, 117),
+                grid_xlim=(-150000, 150000),
+                grid_ylim=(-150000, 150000),
+                grid_zlim=(0, 20000),
+                constant_roi=2500)
+    except Exception:
+        traceback.print_exc()
+        pass
 
-    outpath_70 = os.path.join(output_directory, "grid_70km_1000m")
-    mkdir(outpath_70)
-    gridding_radar_70km(radar, radar_start_date, outpath_70)
+    # 150 km 1000m resolution
+    outpath = os.path.join(output_directory, "grid_150km_1000m")
+    mkdir(outpath)
+    outpath = os.path.join(outpath, year)
+    mkdir(outpath)
+    outpath = os.path.join(outpath, datestr)
+    mkdir(outpath)
 
-    print(f"{os.path.basename(infile)} processed in {time.time() - sttime:0.2f}.")
+    try:
+        grid_radar(radar,
+                outpath=outpath,
+                refl_name=refl_name,
+                grid_shape=(41, 301, 301),
+                grid_xlim=(-150000, 150000),
+                grid_ylim=(-150000, 150000),
+                grid_zlim=(0, 20000),
+                constant_roi=2500)
+    except Exception:
+        traceback.print_exc()
+        pass
 
     del radar
     return None
