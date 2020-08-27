@@ -205,17 +205,21 @@ def standart_gridding(infile, output_directory, refl_name="corrected_reflectivit
         Inpute radar file
     output_directory: str
         Ouput directory.
-    """
-    sttime = time.time()
+    """    
     try:
         if infile.lower().endswith(("h5", "hdf")):
             radar = pyart.aux_io.read_odim_h5(infile, file_field_names=True)
         else:
             radar = pyart.io.read(infile)
+    except Exception:
+        print(f"Error while trying to read input file {infile}. Doing nothing.")
+        traceback.print_exc()
+        return None
 
-    radar_date = cftime.num2pydate(radar.time['data'][0], radar.time['units'].replace("since", "since "))
+    radar_date = cftime.num2pydate(radar.time['data'][0], 
+                                   radar.time['units'])
     year = str(radar_date.year)
-
+    datestr = radar_date.strftime("%Y%m%d")
     # 150 km 2500m resolution
     outpath = os.path.join(output_directory, "grid_150km_2500m")
     mkdir(outpath)
