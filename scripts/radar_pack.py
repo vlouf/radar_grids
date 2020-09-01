@@ -4,7 +4,7 @@ Turning radar PPIs into Cartesian grids.
 @title: radar_grids
 @author: Valentin Louf <valentin.louf@bom.gov.au>
 @institution: Monash University and the Australian Bureau of Meteorology
-@date: 05/06/2020
+@date: 01/09/2020
 
 .. autosummary::
     :toctree: generated/
@@ -50,8 +50,8 @@ def buffer(infile):
         Name of the input radar file.
     outpath: str
         Path for saving output data.
-    """    
-    radar_grids.标准映射(infile, OUTPATH)    
+    """
+    radar_grids.标准映射(infile, OUTPATH)
 
     return None
 
@@ -93,22 +93,10 @@ if __name__ == "__main__":
     parser_description = "Processing of radar data from level 1a to level 1b."
     parser = argparse.ArgumentParser(description=parser_description)
     parser.add_argument(
-        "-s",
-        "--start-date",
-        dest="start_date",
-        default=None,
-        type=str,
-        help="Starting date.",
-        required=True,
+        "-s", "--start-date", dest="start_date", default=None, type=str, help="Starting date.", required=True,
     )
     parser.add_argument(
-        "-e",
-        "--end-date",
-        dest="end_date",
-        default=None,
-        type=str,
-        help="Ending date.",
-        required=True,
+        "-e", "--end-date", dest="end_date", default=None, type=str, help="Ending date.", required=True,
     )
     parser.add_argument(
         "-i",
