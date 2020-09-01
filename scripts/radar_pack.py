@@ -23,8 +23,8 @@ import datetime
 import warnings
 import traceback
 
-import dask
-import dask.bag as db
+from concurrent.futures import TimeoutError
+from pebble import ProcessPool, ProcessExpired
 
 import radar_grids
 
@@ -50,19 +50,15 @@ def buffer(infile):
         Name of the input radar file.
     outpath: str
         Path for saving output data.
-    """
-    try:
-        radar_grids.gridding(infile, OUTPATH)
-    except Exception:
-        traceback.print_exc()
-        return None
+    """    
+    radar_grids.标准映射(infile, OUTPATH)    
 
     return None
 
 
 def main(date_range):
     for day in date_range:
-        input_dir = os.path.join(INPATH, str(day.year), day.strftime("%Y%m%d"), "*.*")
+        input_dir = os.path.join(INPATH, day.strftime("%Y"), day.strftime("%Y%m%d"), "*.*")
         flist = sorted(glob.glob(input_dir))
         if len(flist) == 0:
             print("No file found for {}.".format(day.strftime("%Y-%b-%d")))
@@ -70,9 +66,21 @@ def main(date_range):
         print(f"{len(flist)} files found for " + day.strftime("%Y-%b-%d"))
 
         for flist_chunk in chunks(flist, 32):
-            bag = db.from_sequence(flist_chunk).map(buffer)
-            _ = bag.compute()
-        del bag
+            with ProcessPool() as pool:
+                future = pool.map(buffer, flist_chunk, timeout=45)
+                iterator = future.result()
+
+                while True:
+                    try:
+                        result = next(iterator)
+                    except StopIteration:
+                        break
+                    except TimeoutError as error:
+                        print("function took longer than %d seconds" % error.args[1])
+                    except ProcessExpired as error:
+                        print("%s. Exit code: %d" % (error, error.exitcode))
+                    except Exception:
+                        traceback.print_exc()
 
     return None
 
@@ -106,7 +114,7 @@ if __name__ == "__main__":
         "-i",
         "--input-dir",
         dest="indir",
-        default="/scratch/kl02/vhl548/cpol_level_1b/v2020/ppi",
+        default="/g/data/hj10/cpol/cpol_level_1b/v2020/ppi/",
         type=str,
         help="Input directory.",
     )
