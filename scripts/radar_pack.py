@@ -2,6 +2,7 @@
 Turning radar PPIs into Cartesian grids.
 
 @title: radar_grids
+@name: radar_grids
 @author: Valentin Louf <valentin.louf@bom.gov.au>
 @institution: Monash University and the Australian Bureau of Meteorology
 @date: 01/09/2020
@@ -72,7 +73,7 @@ def main(date_range):
 
                 while True:
                     try:
-                        result = next(iterator)
+                        _ = next(iterator)
                     except StopIteration:
                         break
                     except TimeoutError as error:
