@@ -277,31 +277,6 @@ def 标准映射(infile, output_directory, prefix="rvopolgrid", refl_name="corre
         traceback.print_exc()
         pass
 
-    # 70 km 1000m resolution
-    outpath = os.path.join(output_directory, "grid_70km_1000m")
-    mkdir(outpath)
-    outpath = os.path.join(outpath, year)
-    mkdir(outpath)
-    outpath = os.path.join(outpath, datestr)
-    mkdir(outpath)
-
-    try:
-        grid_radar(
-            radar,
-            infile=infile,
-            outpath=outpath,
-            refl_name=refl_name,
-            prefix=prefix,
-            grid_shape=(41, 141, 141),
-            grid_xlim=(-70000, 70000),
-            grid_ylim=(-70000, 70000),
-            grid_zlim=(0, 20000),
-            constant_roi=1000,
-        )
-    except Exception:
-        traceback.print_exc()
-        pass
-
     # 150 km 1000m resolution
     outpath = os.path.join(output_directory, "grid_150km_1000m")
     mkdir(outpath)
