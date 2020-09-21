@@ -231,7 +231,7 @@ def 标准映射(
     output_directory: str,
     prefix: str = "rvopolgrid",
     refl_name: str = "corrected_reflectivity",
-    na_standard=False,
+    na_standard: bool = False,
 ):
     """
     Call the 2 gridding functions to generate a full domain grid at 2.5 km
@@ -253,6 +253,32 @@ def 标准映射(
         print(f"Error while trying to read input file {infile}. Doing nothing.")
         traceback.print_exc()
         return None
+
+    # Drop keys not present in good_keys
+    if na_standard:
+        good_keys = [
+            "air_echo_classification",
+            "corrected_differential_phase",
+            "corrected_differential_reflectivity",
+            "corrected_reflectivity",
+            "corrected_specific_differential_phase",
+            "corrected_velocity",
+            "cross_correlation_ratio",
+            "normalized_coherent_power",
+            "radar_echo_classification",
+            "radar_estimated_rain_rate",
+            "signal_to_noise_ratio",
+            "spectrum_width",
+            "total_power",
+        ]
+
+        fkeys = list(radar.fields.keys())
+        for k in fkeys:
+            if k not in good_keys:
+                try:
+                    _ = radar.fields.pop(k)
+                except KeyError:
+                    pass
 
     radar_date = cftime.num2pydate(radar.time["data"][0], radar.time["units"])
     year = str(radar_date.year)
