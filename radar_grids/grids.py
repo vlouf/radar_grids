@@ -162,12 +162,20 @@ def grid_radar(
     radar.latitude["data"] = radar.latitude["data"].astype(np.float64)
 
     date = cftime.num2pydate(radar.time["data"][0], radar.time["units"])
+    # Generate filename.
     if outpath is not None:
-        datetimestr = date.strftime("%Y%m%d.%H%M")
-        outfilename = f"{prefix}.b2.{datetimestr}00.nc"
-        if infile is not None:
+        if na_standard:
+            # Like the national archive: ID_YYYYMMDD_HHMMSS.nc
+            datetimestr = date.strftime("%Y%m%d_%H%M")
+            outfilename = f"502_{datetimestr}00.nc"
+        else:
+            datetimestr = date.strftime("%Y%m%d.%H%M")
             if "PPIVol" in infile:
+                # Like input file name but PPIVol replaced by GRID
                 outfilename = os.path.basename(infile).replace("PPIVol", "GRID")
+            else:
+                # New name, ARM-style: prefix.b2.date.time.nc
+                outfilename = f"{prefix}.b2.{datetimestr}00.nc"
         outfilename = os.path.join(outpath, outfilename)
     else:
         outfilename = None
