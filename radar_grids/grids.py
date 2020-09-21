@@ -317,6 +317,7 @@ def 标准映射(
             grid_ylim=(-150000, 150000),
             grid_zlim=(0, 20000),
             constant_roi=2500,
+            na_standard=na_standard,
         )
     except Exception:
         traceback.print_exc()
@@ -342,6 +343,7 @@ def 标准映射(
             grid_ylim=(-150000, 150000),
             grid_zlim=(0, 20000),
             constant_roi=2500,
+            na_standard=na_standard,
         )
     except Exception:
         traceback.print_exc()
