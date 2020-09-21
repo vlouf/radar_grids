@@ -4,7 +4,7 @@ Gridding radar data using Barnes2 and a constant ROI from Py-ART
 @title: grids.py
 @author: Valentin Louf <valentin.louf@bom.gov.au>
 @institutions: Monash University and the Australian Bureau of Meteorology
-@date: 27/08/2020
+@date: 02/09/2020
 
 .. autosummary::
     :toctree: generated/
@@ -116,6 +116,7 @@ def update_variables_metadata(grid):
 
 def grid_radar(
     radar,
+    infile=None,
     outpath=None,
     prefix="rvopolgrid",
     refl_name="corrected_reflectivity",
@@ -132,6 +133,8 @@ def grid_radar(
     ===========
     radar:
         Py-ART radar structure.
+    infile:
+        Input file name for ouput file name generation.
     outpath: str
         If outpath is not define, it will return the grid and not save it. If
         it is defined, then it will save the grid and return nothing.
@@ -160,7 +163,10 @@ def grid_radar(
     date = cftime.num2pydate(radar.time["data"][0], radar.time["units"])
     if outpath is not None:
         datetimestr = date.strftime("%Y%m%d.%H%M")
-        outfilename = f"{prefix}.b2.{datetimestr}00.nc"
+        outfilename = f"{prefix}.b2.{datetimestr}00.nc"      
+        if infile is not None:
+            if "PPIVol" in infile:
+                outfilename = os.path.basename(infile).replace("PPIVol", "GRID")
         outfilename = os.path.join(outpath, outfilename)
     else:
         outfilename = None
@@ -257,6 +263,7 @@ def 标准映射(infile, output_directory, prefix="rvopolgrid", refl_name="corre
     try:
         grid_radar(
             radar,
+            infile=infile,
             outpath=outpath,
             refl_name=refl_name,
             prefix=prefix,
@@ -265,30 +272,6 @@ def 标准映射(infile, output_directory, prefix="rvopolgrid", refl_name="corre
             grid_ylim=(-150000, 150000),
             grid_zlim=(0, 20000),
             constant_roi=2500,
-        )
-    except Exception:
-        traceback.print_exc()
-        pass
-
-    # 70 km 1000m resolution
-    outpath = os.path.join(output_directory, "grid_70km_1000m")
-    mkdir(outpath)
-    outpath = os.path.join(outpath, year)
-    mkdir(outpath)
-    outpath = os.path.join(outpath, datestr)
-    mkdir(outpath)
-
-    try:
-        grid_radar(
-            radar,
-            outpath=outpath,
-            refl_name=refl_name,
-            prefix=prefix,
-            grid_shape=(41, 141, 141),
-            grid_xlim=(-70000, 70000),
-            grid_ylim=(-70000, 70000),
-            grid_zlim=(0, 20000),
-            constant_roi=1000,
         )
     except Exception:
         traceback.print_exc()
@@ -305,6 +288,7 @@ def 标准映射(infile, output_directory, prefix="rvopolgrid", refl_name="corre
     try:
         grid_radar(
             radar,
+            infile=infile,
             outpath=outpath,
             refl_name=refl_name,
             prefix=prefix,
