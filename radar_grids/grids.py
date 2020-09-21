@@ -4,7 +4,7 @@ Gridding radar data using Barnes2 and a constant ROI from Py-ART
 @title: grids.py
 @author: Valentin Louf <valentin.louf@bom.gov.au>
 @institutions: Monash University and the Australian Bureau of Meteorology
-@date: 02/09/2020
+@date: 21/09/2020
 
 .. autosummary::
     :toctree: generated/
@@ -149,6 +149,8 @@ def grid_radar(
         Grid limits in the z-axis.
     constant_roi: float
         Value for the size of the radius of influence.
+    na_standard: bool
+        Use the National Archive standard for file-naming convention.
 
     Returns:
     ========
@@ -251,6 +253,8 @@ def 标准映射(
         Inpute radar file
     output_directory: str
         Ouput directory.
+    na_standard: bool
+        Use the National Archive standard for file-naming convention.
     """
     try:
         if infile.lower().endswith(("h5", "hdf")):
@@ -279,6 +283,8 @@ def 标准映射(
             "spectrum_width",
             "total_power",
         ]
+        if refl_name not in good_keys:
+            good_keys.append(refl_name)
 
         fkeys = list(radar.fields.keys())
         for k in fkeys:
