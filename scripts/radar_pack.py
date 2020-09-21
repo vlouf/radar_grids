@@ -52,7 +52,7 @@ def buffer(infile):
     outpath: str
         Path for saving output data.
     """
-    radar_grids.标准映射(infile, OUTPATH)
+    radar_grids.标准映射(infile, OUTPATH, na_standard=True)
 
     return None
 
