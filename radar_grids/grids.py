@@ -125,6 +125,7 @@ def grid_radar(
     grid_ylim=(-150000, 150000),
     grid_zlim=(0, 20000),
     constant_roi=2500,
+    na_standard=False,
 ):
     """
     Map a single radar to a Cartesian grid.
@@ -156,14 +157,14 @@ def grid_radar(
         otherwise it just saves it and return nothing.
     """
     # Update radar dtype:
-    radar.altitude['data'] = radar.altitude['data'].astype(np.float64)
-    radar.longitude['data'] = radar.longitude['data'].astype(np.float64)
-    radar.latitude['data'] = radar.latitude['data'].astype(np.float64)
+    radar.altitude["data"] = radar.altitude["data"].astype(np.float64)
+    radar.longitude["data"] = radar.longitude["data"].astype(np.float64)
+    radar.latitude["data"] = radar.latitude["data"].astype(np.float64)
 
     date = cftime.num2pydate(radar.time["data"][0], radar.time["units"])
     if outpath is not None:
         datetimestr = date.strftime("%Y%m%d.%H%M")
-        outfilename = f"{prefix}.b2.{datetimestr}00.nc"      
+        outfilename = f"{prefix}.b2.{datetimestr}00.nc"
         if infile is not None:
             if "PPIVol" in infile:
                 outfilename = os.path.basename(infile).replace("PPIVol", "GRID")
@@ -204,22 +205,20 @@ def grid_radar(
 
     # Saving data.
     if outfilename is not None:
-        pyart.io.write_grid(
-            outfilename, grid, arm_time_variables=True, write_point_lon_lat_alt=False
-        )
+        pyart.io.write_grid(outfilename, grid, arm_time_variables=True, write_point_lon_lat_alt=False)
         # append ROI and lat/long 2D grids and update metadata
-        lon_data,  lat_data = grid.get_point_longitude_latitude(0)
-        with netCDF4.Dataset(outfilename, 'a') as ncid:
-            nclon = ncid.createVariable('longitude', np.float32, ('y', 'x'), zlib=True, least_significant_digit=2)
+        lon_data, lat_data = grid.get_point_longitude_latitude(0)
+        with netCDF4.Dataset(outfilename, "a") as ncid:
+            nclon = ncid.createVariable("longitude", np.float32, ("y", "x"), zlib=True, least_significant_digit=2)
             nclon[:] = lon_data
-            nclon.units = 'degrees_east'
-            nclon.standard_name = 'longitude'
-            nclon.long_name = 'longitude_degrees_east'
-            nclat = ncid.createVariable('latitude', np.float32, ('y', 'x'), zlib=True, least_significant_digit=2)
+            nclon.units = "degrees_east"
+            nclon.standard_name = "longitude"
+            nclon.long_name = "longitude_degrees_east"
+            nclat = ncid.createVariable("latitude", np.float32, ("y", "x"), zlib=True, least_significant_digit=2)
             nclat[:] = lat_data
-            nclat.units = 'degrees_north'
-            nclat.standard_name = 'latitude'
-            nclat.long_name = 'latitude_degrees_north'
+            nclat.units = "degrees_north"
+            nclat.standard_name = "latitude"
+            nclat.long_name = "latitude_degrees_north"
 
         del grid
         return None
@@ -227,7 +226,13 @@ def grid_radar(
         return grid
 
 
-def 标准映射(infile, output_directory, prefix="rvopolgrid", refl_name="corrected_reflectivity"):
+def 标准映射(
+    infile: str,
+    output_directory: str,
+    prefix: str = "rvopolgrid",
+    refl_name: str = "corrected_reflectivity",
+    na_standard=False,
+):
     """
     Call the 2 gridding functions to generate a full domain grid at 2.5 km
     resolution and at 1 km resolution, handle the directory creation.
