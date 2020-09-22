@@ -4,7 +4,7 @@ Gridding radar data using Barnes2 and a constant ROI from Py-ART
 @title: grids.py
 @author: Valentin Louf <valentin.louf@bom.gov.au>
 @institutions: Monash University and the Australian Bureau of Meteorology
-@date: 21/09/2020
+@date: 22/09/2020
 
 .. autosummary::
     :toctree: generated/
@@ -181,6 +181,11 @@ def grid_radar(
         outfilename = os.path.join(outpath, outfilename)
     else:
         outfilename = None
+
+    if outfilename is not None:
+        if os.path.exists(outfilename):
+            print(f"Output file {outfilename} already exists. Doing nothing.")
+            return None
 
     # exclude masked gates from the gridding
     gatefilter = pyart.filters.GateFilter(radar)
