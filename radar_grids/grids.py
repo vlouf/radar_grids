@@ -297,6 +297,7 @@ def 标准映射(
             "normalized_coherent_power",
             "radar_echo_classification",
             "radar_estimated_rain_rate",
+            "reflectivity",
             "signal_to_noise_ratio",
             "spectrum_width",
             "total_power",
@@ -311,6 +312,11 @@ def 标准映射(
                     _ = radar.fields.pop(k)
                 except KeyError:
                     pass
+
+    try:
+        radar.fields["reflectivity"]
+    except KeyError:
+        radar.add_field("reflectivity", radar.pop("corrected_reflectivity"))
 
     radar_date = cftime.num2pydate(radar.time["data"][0], radar.time["units"])
     year = str(radar_date.year)
