@@ -4,7 +4,7 @@ Gridding radar data using Barnes2 and a constant ROI from Py-ART
 @title: grids.py
 @author: Valentin Louf <valentin.louf@bom.gov.au>
 @institutions: Monash University and the Australian Bureau of Meteorology
-@date: 22/09/2020
+@date: 27/11/2020
 
 .. autosummary::
     :toctree: generated/
@@ -349,6 +349,31 @@ def 标准映射(
             grid_zlim=(0, 20000),
             constant_roi=2500,
             na_standard=na_standard,
+        )
+    except Exception:
+        traceback.print_exc()
+        pass
+
+    # 70 km 1000m resolution
+    outpath = os.path.join(output_directory, "grid_70km_1000m")
+    mkdir(outpath)
+    outpath = os.path.join(outpath, year)
+    mkdir(outpath)
+    outpath = os.path.join(outpath, datestr)
+    mkdir(outpath)
+
+    try:
+        grid_radar(
+            radar,
+            infile=infile,
+            outpath=outpath,
+            refl_name=refl_name,
+            prefix=prefix,
+            grid_shape=(41, 141, 141),
+            grid_xlim=(-70000, 70000),
+            grid_ylim=(-70000, 70000),
+            grid_zlim=(0, 20000),
+            constant_roi=1000,
         )
     except Exception:
         traceback.print_exc()
