@@ -5,7 +5,7 @@ Turning radar PPIs into Cartesian grids.
 @name: radar_grids
 @author: Valentin Louf <valentin.louf@bom.gov.au>
 @institution: Monash University and the Australian Bureau of Meteorology
-@date: 23/09/2020
+@date: 27/11/2020
 
 .. autosummary::
     :toctree: generated/
@@ -39,7 +39,7 @@ def chunks(l, n):
         yield l[i : i + n]
 
 
-def buffer(infile):
+def buffer(infile: str) -> None:
     """
     It calls the production line and manages it. Buffer function that is used
     to catch any problem with the processing line without screwing the whole
@@ -48,16 +48,14 @@ def buffer(infile):
     Parameters:
     ===========
     infile: str
-        Name of the input radar file.
-    outpath: str
-        Path for saving output data.
+        Name of the input radar file.    
     """
-    radar_grids.标准映射(infile, OUTPATH, na_standard=True)
+    radar_grids.标准映射(infile, OUTPATH, prefix="twp10cpolgrid", na_standard=True)
 
     return None
 
 
-def main():
+def main() -> None:
     input_dir = os.path.join(INPATH, "**", "*.*")
     flist = sorted(glob.glob(input_dir))
     if len(flist) == 0:

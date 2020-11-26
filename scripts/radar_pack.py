@@ -5,7 +5,7 @@ Turning radar PPIs into Cartesian grids.
 @name: radar_grids
 @author: Valentin Louf <valentin.louf@bom.gov.au>
 @institution: Monash University and the Australian Bureau of Meteorology
-@date: 01/09/2020
+@date: 27/11/2020
 
 .. autosummary::
     :toctree: generated/
@@ -24,6 +24,7 @@ import datetime
 import warnings
 import traceback
 
+from typing import List
 from concurrent.futures import TimeoutError
 from pebble import ProcessPool, ProcessExpired
 
@@ -39,7 +40,7 @@ def chunks(l, n):
         yield l[i : i + n]
 
 
-def buffer(infile):
+def buffer(infile: str) -> None:
     """
     It calls the production line and manages it. Buffer function that is used
     to catch any problem with the processing line without screwing the whole
@@ -57,7 +58,7 @@ def buffer(infile):
     return None
 
 
-def main(date_range):
+def main(date_range: List[datetime.datetime]) -> None:
     for day in date_range:
         input_dir = os.path.join(INPATH, day.strftime("%Y"), day.strftime("%Y%m%d"), "*.*")
         flist = sorted(glob.glob(input_dir))
@@ -94,10 +95,22 @@ if __name__ == "__main__":
     parser_description = "Processing of radar data from level 1a to level 1b."
     parser = argparse.ArgumentParser(description=parser_description)
     parser.add_argument(
-        "-s", "--start-date", dest="start_date", default=None, type=str, help="Starting date.", required=True,
+        "-s",
+        "--start-date",
+        dest="start_date",
+        default=None,
+        type=str,
+        help="Starting date for processing the radar data.",
+        required=True,
     )
     parser.add_argument(
-        "-e", "--end-date", dest="end_date", default=None, type=str, help="Ending date.", required=True,
+        "-e",
+        "--end-date",
+        dest="end_date",
+        default=None,
+        type=str,
+        help="Ending date for processing the radar data.",
+        required=True,
     )
     parser.add_argument(
         "-i",
