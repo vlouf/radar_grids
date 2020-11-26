@@ -60,9 +60,22 @@ def update_metadata(radar) -> dict:
     today = datetime.datetime.utcnow()
     dtime = cftime.num2pydate(radar.time["data"], radar.time["units"])
 
+    longitude, latitude = radar.get_point_longitude_latitude(0)    
+    maxlon = longitude.max()
+    minlon = longitude.min()
+    maxlat = latitude.max()
+    minlat = latitude.min()    
+
     metadata = {
         "comment": "Gridded radar volume using Barnes et al. ROI",
         "field_names": ", ".join([k for k in radar.fields.keys()]),
+        "geospatial_bounds": f"POLYGON(({minlon:0.6} {minlat:0.6},{minlon:0.6} {maxlat:0.6},{maxlon:0.6} {maxlat:0.6},{maxlon:0.6} {minlat:0.6},{minlon:0.6} {minlat:0.6}))",
+        "geospatial_lat_max": f"{maxlat:0.6}",
+        "geospatial_lat_min": f"{minlat:0.6}",
+        "geospatial_lat_units": "degrees_north",
+        "geospatial_lon_max": f"{maxlon:0.6}",
+        "geospatial_lon_min": f"{minlon:0.6}",
+        "geospatial_lon_units": "degrees_east",
         "geospatial_vertical_min": radar.origin_altitude["data"][0],
         "geospatial_vertical_max": 20000,
         "geospatial_vertical_positive": "up",
