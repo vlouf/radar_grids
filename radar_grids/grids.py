@@ -317,6 +317,7 @@ def 标准映射(
         radar.fields["reflectivity"]
     except KeyError:
         radar.add_field("reflectivity", radar.fields.pop("corrected_reflectivity"))
+        refl_name = "reflectivity"
 
     radar_date = cftime.num2pydate(radar.time["data"][0], radar.time["units"])
     year = str(radar_date.year)
