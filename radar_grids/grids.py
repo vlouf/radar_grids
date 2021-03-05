@@ -4,7 +4,7 @@ Gridding radar data using Barnes2 and a constant ROI from Py-ART
 @title: grids.py
 @author: Valentin Louf <valentin.louf@bom.gov.au>
 @institutions: Monash University and the Australian Bureau of Meteorology
-@date: 27/11/2020
+@date: 05/03/2021
 
 .. autosummary::
     :toctree: generated/
@@ -17,7 +17,6 @@ Gridding radar data using Barnes2 and a constant ROI from Py-ART
 """
 # Standard Library
 import os
-import time
 import uuid
 import datetime
 import traceback
@@ -60,11 +59,11 @@ def update_metadata(radar) -> dict:
     today = datetime.datetime.utcnow()
     dtime = cftime.num2pydate(radar.time["data"], radar.time["units"])
 
-    longitude, latitude = radar.get_point_longitude_latitude(0)    
+    longitude, latitude = radar.get_point_longitude_latitude(0)
     maxlon = longitude.max()
     minlon = longitude.min()
     maxlat = latitude.max()
-    minlat = latitude.min()    
+    minlat = latitude.min()
 
     metadata = {
         "comment": "Gridded radar volume using Barnes et al. ROI",
@@ -129,16 +128,14 @@ def update_variables_metadata(grid):
 
 def grid_radar(
     radar,
-    infile=None,
     outpath=None,
-    prefix="rvopolgrid",
+    prefix="502",
     refl_name="corrected_reflectivity",
     grid_shape=(41, 117, 117),
     grid_xlim=(-150000, 150000),
     grid_ylim=(-150000, 150000),
     grid_zlim=(0, 20000),
     constant_roi=2500,
-    na_standard=False,
 ):
     """
     Map a single radar to a Cartesian grid.
@@ -179,23 +176,10 @@ def grid_radar(
     date = cftime.num2pydate(radar.time["data"][0], radar.time["units"])
     # Generate filename.
     if outpath is not None:
-        if na_standard:
-            # Like the national archive: ID_YYYYMMDD_HHMMSS.nc
-            datetimestr = date.strftime("%Y%m%d_%H%M")
-            outfilename = f"502_{datetimestr}00.nc"
-        else:
-            datetimestr = date.strftime("%Y%m%d.%H%M")
-            if "PPIVol" in infile:
-                # Like input file name but PPIVol replaced by GRID
-                outfilename = os.path.basename(infile).replace("PPIVol", "GRID")
-            else:
-                # New name, ARM-style: prefix.b2.date.time.nc
-                outfilename = f"{prefix}.b2.{datetimestr}00.nc"
+        # Like the national archive: ID_YYYYMMDD_HHMMSS.nc
+        datetimestr = date.strftime("%Y%m%d_%H%M")
+        outfilename = f"{prefix}_{datetimestr}00_grid.nc"
         outfilename = os.path.join(outpath, outfilename)
-    else:
-        outfilename = None
-
-    if outfilename is not None:
         if os.path.exists(outfilename):
             print(f"Output file {outfilename} already exists. Doing nothing.")
             return None
@@ -257,7 +241,7 @@ def grid_radar(
 def 标准映射(
     infile: str,
     output_directory: str,
-    prefix: str = "rvopolgrid",
+    prefix: str = "502",
     refl_name: str = "corrected_reflectivity",
     na_standard: bool = False,
 ):
@@ -313,12 +297,6 @@ def 标准映射(
                 except KeyError:
                     pass
 
-    try:
-        radar.fields["reflectivity"]
-    except KeyError:
-        radar.add_field("reflectivity", radar.fields.pop("corrected_reflectivity"))
-        refl_name = "reflectivity"
-
     radar_date = cftime.num2pydate(radar.time["data"][0], radar.time["units"])
     year = str(radar_date.year)
     datestr = radar_date.strftime("%Y%m%d")
@@ -333,7 +311,6 @@ def 标准映射(
     try:
         grid_radar(
             radar,
-            infile=infile,
             outpath=outpath,
             refl_name=refl_name,
             prefix=prefix,
@@ -359,7 +336,6 @@ def 标准映射(
     try:
         grid_radar(
             radar,
-            infile=infile,
             outpath=outpath,
             refl_name=refl_name,
             prefix=prefix,
@@ -374,30 +350,30 @@ def 标准映射(
         traceback.print_exc()
         pass
 
-    # 70 km 1000m resolution
-    outpath = os.path.join(output_directory, "grid_70km_1000m")
-    mkdir(outpath)
-    outpath = os.path.join(outpath, year)
-    mkdir(outpath)
-    outpath = os.path.join(outpath, datestr)
-    mkdir(outpath)
+    # # 70 km 1000m resolution
+    # outpath = os.path.join(output_directory, "grid_70km_1000m")
+    # mkdir(outpath)
+    # outpath = os.path.join(outpath, year)
+    # mkdir(outpath)
+    # outpath = os.path.join(outpath, datestr)
+    # mkdir(outpath)
 
-    try:
-        grid_radar(
-            radar,
-            infile=infile,
-            outpath=outpath,
-            refl_name=refl_name,
-            prefix=prefix,
-            grid_shape=(41, 141, 141),
-            grid_xlim=(-70000, 70000),
-            grid_ylim=(-70000, 70000),
-            grid_zlim=(0, 20000),
-            constant_roi=1000,
-        )
-    except Exception:
-        traceback.print_exc()
-        pass
+    # try:
+    #     grid_radar(
+    #         radar,
+    #         infile=infile,
+    #         outpath=outpath,
+    #         refl_name=refl_name,
+    #         prefix=prefix,
+    #         grid_shape=(41, 141, 141),
+    #         grid_xlim=(-70000, 70000),
+    #         grid_ylim=(-70000, 70000),
+    #         grid_zlim=(0, 20000),
+    #         constant_roi=1000,
+    #     )
+    # except Exception:
+    #     traceback.print_exc()
+    #     pass
 
     del radar
     return None
