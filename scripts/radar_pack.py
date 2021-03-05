@@ -53,7 +53,7 @@ def buffer(infile: str) -> None:
     outpath: str
         Path for saving output data.
     """
-    radar_grids.标准映射(infile, OUTPATH, na_standard=True)
+    radar_grids.标准映射(infile, OUTPATH, na_standard=True, prefix="twp10cpolgrid")
 
     return None
 
@@ -69,7 +69,7 @@ def main(date_range: List[datetime.datetime]) -> None:
 
         for flist_chunk in chunks(flist, 32):
             with ProcessPool() as pool:
-                future = pool.map(buffer, flist_chunk, timeout=45)
+                future = pool.map(buffer, flist_chunk, timeout=90)
                 iterator = future.result()
 
                 while True:
