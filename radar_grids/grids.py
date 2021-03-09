@@ -4,7 +4,7 @@ Gridding radar data using Barnes2 and a constant ROI from Py-ART
 @title: grids.py
 @author: Valentin Louf <valentin.louf@bom.gov.au>
 @institutions: Monash University and the Australian Bureau of Meteorology
-@date: 05/03/2021
+@date: 09/03/2021
 
 .. autosummary::
     :toctree: generated/
@@ -42,7 +42,7 @@ def mkdir(dirpath: str):
     return None
 
 
-def update_metadata(radar) -> dict:
+def update_metadata(radar, longitude, latitude) -> dict:
     """
     Update metadata of the gridded products.
 
@@ -59,7 +59,6 @@ def update_metadata(radar) -> dict:
     today = datetime.datetime.utcnow()
     dtime = cftime.num2pydate(radar.time["data"], radar.time["units"])
 
-    longitude, latitude = radar.get_point_longitude_latitude(0)
     maxlon = longitude.max()
     minlon = longitude.min()
     maxlat = latitude.max()
@@ -82,7 +81,7 @@ def update_metadata(radar) -> dict:
         "processing_level": "b2",
         "time_coverage_start": dtime[0].isoformat(),
         "time_coverage_end": dtime[-1].isoformat(),
-        "uuid": str(uuid.uuid4()),
+        "uuid": str(uuid.uuid4()),        
     }
 
     return metadata
@@ -209,17 +208,18 @@ def grid_radar(
         pass
 
     # Metadata
-    metadata = update_metadata(grid)
+    lon_data, lat_data = grid.get_point_longitude_latitude(0)
+    metadata = update_metadata(grid, longitude=lon_data, latitude=lat_data)
+    metadata["summary"] = f"Gridded data from radar {prefix}."
     for k, v in metadata.items():
         grid.metadata[k] = v
-    grid.metadata["title"] = f"Gridded radar volume on a {max(grid_xlim)}x{max(grid_ylim)}x{max(grid_zlim)}km grid"
+    grid.metadata["title"] = f"Gridded radar volume on a {max(grid_xlim)}x{max(grid_ylim)}x{max(grid_zlim)}km grid"    
     grid = update_variables_metadata(grid)
 
     # Saving data.
     if outfilename is not None:
         pyart.io.write_grid(outfilename, grid, arm_time_variables=True, write_point_lon_lat_alt=False)
         # append ROI and lat/long 2D grids and update metadata
-        lon_data, lat_data = grid.get_point_longitude_latitude(0)
         with netCDF4.Dataset(outfilename, "a") as ncid:
             nclon = ncid.createVariable("longitude", np.float32, ("y", "x"), zlib=True, least_significant_digit=2)
             nclon[:] = lon_data
@@ -281,7 +281,6 @@ def 标准映射(
             "normalized_coherent_power",
             "radar_echo_classification",
             "radar_estimated_rain_rate",
-            "reflectivity",
             "signal_to_noise_ratio",
             "spectrum_width",
             "total_power",
@@ -308,19 +307,20 @@ def 标准映射(
     outpath = os.path.join(outpath, datestr)
     mkdir(outpath)
 
+    kwargs = {
+        "outpath": outpath,
+        "refl_name": refl_name,
+        "prefix": prefix,
+        "grid_shape": (41, 117, 117),
+        "grid_xlim": (-150000, 150000),
+        "grid_ylim": (-150000, 150000),
+        "grid_zlim": (0, 20000),
+        "constant_roi": 2500,
+        "na_standard": na_standard,
+    }
+
     try:
-        grid_radar(
-            radar,
-            outpath=outpath,
-            refl_name=refl_name,
-            prefix=prefix,
-            grid_shape=(41, 117, 117),
-            grid_xlim=(-150000, 150000),
-            grid_ylim=(-150000, 150000),
-            grid_zlim=(0, 20000),
-            constant_roi=2500,
-            na_standard=na_standard,
-        )
+        grid_radar(radar, **kwargs)
     except Exception:
         traceback.print_exc()
         pass
@@ -333,47 +333,13 @@ def 标准映射(
     outpath = os.path.join(outpath, datestr)
     mkdir(outpath)
 
+    kwargs["outpath"] = outpath,
+    kwargs["grid_shape"] = (41, 301, 301)
+
     try:
-        grid_radar(
-            radar,
-            outpath=outpath,
-            refl_name=refl_name,
-            prefix=prefix,
-            grid_shape=(41, 301, 301),
-            grid_xlim=(-150000, 150000),
-            grid_ylim=(-150000, 150000),
-            grid_zlim=(0, 20000),
-            constant_roi=2500,
-            na_standard=na_standard,
-        )
+        grid_radar(radar, **kwargs)
     except Exception:
         traceback.print_exc()
         pass
 
-    # # 70 km 1000m resolution
-    # outpath = os.path.join(output_directory, "grid_70km_1000m")
-    # mkdir(outpath)
-    # outpath = os.path.join(outpath, year)
-    # mkdir(outpath)
-    # outpath = os.path.join(outpath, datestr)
-    # mkdir(outpath)
-
-    # try:
-    #     grid_radar(
-    #         radar,
-    #         infile=infile,
-    #         outpath=outpath,
-    #         refl_name=refl_name,
-    #         prefix=prefix,
-    #         grid_shape=(41, 141, 141),
-    #         grid_xlim=(-70000, 70000),
-    #         grid_ylim=(-70000, 70000),
-    #         grid_zlim=(0, 20000),
-    #         constant_roi=1000,
-    #     )
-    # except Exception:
-    #     traceback.print_exc()
-    #     pass
-
-    del radar
     return None
