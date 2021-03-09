@@ -10,6 +10,7 @@ Gridding radar data using Barnes2 and a constant ROI from Py-ART
     :toctree: generated/
 
     mkdir
+    get_dtype
     update_metadata
     update_variables_metadata
     grid_radar
@@ -21,6 +22,8 @@ import uuid
 import datetime
 import traceback
 
+from typing import Any, Dict, Tuple
+
 # Other libraries.
 import pyart
 import cftime
@@ -28,7 +31,7 @@ import netCDF4
 import numpy as np
 
 
-def mkdir(dirpath: str):
+def mkdir(dirpath: str) -> None:
     """
     Create directory. Check if directory exists and handles error.
     """
@@ -42,7 +45,27 @@ def mkdir(dirpath: str):
     return None
 
 
-def update_metadata(radar, longitude, latitude) -> dict:
+def get_dtype() -> Dict:
+    keytypes = {
+        "air_echo_classification": np.int16,
+        "radar_echo_classification": np.int16,
+        "corrected_differential_phase": np.float32,
+        "corrected_differential_reflectivity": np.float32,
+        "corrected_reflectivity": np.float32,
+        "corrected_specific_differential_phase": np.float32,
+        "corrected_velocity": np.float32,
+        "cross_correlation_ratio": np.float32,
+        "normalized_coherent_power": np.float32,        
+        "radar_estimated_rain_rate": np.float32,
+        "signal_to_noise_ratio": np.float32,
+        "spectrum_width": np.float32,
+        "total_power": np.float32,
+    }
+
+    return keytypes
+
+
+def update_metadata(radar, longitude: np.ndarray, latitude: np.ndarray) -> Dict:
     """
     Update metadata of the gridded products.
 
@@ -127,15 +150,15 @@ def update_variables_metadata(grid):
 
 def grid_radar(
     radar,
-    outpath=None,
-    prefix="502",
-    refl_name="corrected_reflectivity",
-    grid_shape=(41, 117, 117),
-    grid_xlim=(-150000, 150000),
-    grid_ylim=(-150000, 150000),
-    grid_zlim=(0, 20000),
-    constant_roi=2500,
-):
+    outpath: str=None,
+    prefix: str="502",
+    refl_name: str="corrected_reflectivity",
+    grid_shape: Tuple=(41, 117, 117),
+    grid_xlim: Tuple=(-150000, 150000),
+    grid_ylim: Tuple=(-150000, 150000),
+    grid_zlim: Tuple=(0, 20000),
+    constant_roi: float=2500,
+) -> Any:
     """
     Map a single radar to a Cartesian grid.
 
@@ -207,6 +230,15 @@ def grid_radar(
     except KeyError:
         pass
 
+    # Update dtype:
+    keytypes = get_dtype()
+    for k, v in keytypes.items():
+        try:
+            if grid.fields[k]["data"].dtype != v:
+                grid.fields[k]["data"] = grid.fields[k]["data"].astype(v)
+        except KeyError:
+            pass
+
     # Metadata
     lon_data, lat_data = grid.get_point_longitude_latitude(0)
     metadata = update_metadata(grid, longitude=lon_data, latitude=lat_data)
@@ -244,7 +276,7 @@ def 标准映射(
     prefix: str = "502",
     refl_name: str = "corrected_reflectivity",
     na_standard: bool = False,
-):
+) -> None:
     """
     Call the 2 gridding functions to generate a full domain grid at 2.5 km
     resolution and at 1 km resolution, handle the directory creation.
