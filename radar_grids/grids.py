@@ -329,7 +329,7 @@ def 标准映射(
                     pass
 
         fkeys = list(radar.fields.keys())
-        if "corrected_reflectivity" not in fkeys or "corrected_reflectivity" not in fkeys:
+        if "corrected_reflectivity" not in fkeys or refl_name not in fkeys:
             raise KeyError("Missing important radar field.")
 
     radar_date = cftime.num2pydate(radar.time["data"][0], radar.time["units"])
