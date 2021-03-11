@@ -19,7 +19,6 @@ import os
 import sys
 import glob
 import argparse
-import datetime
 import warnings
 import traceback
 
@@ -56,16 +55,16 @@ def buffer(infile: str) -> None:
     return None
 
 
-def main(start: datetime.datetime, end: datetime.datetime) -> None:
+def main(start: pd.Timestamp, end: pd.Timestamp) -> None:
     """
     Look for files in the subdirectory structure and spawn the multiprocessing
     pools to process these files.
 
     Parameters:
     ===========
-    start: datetime.datetime
+    start: pd.Timestamp
         Start date for processing.
-    end: datetime.datetime
+    end: pd.Timestamp
         End date for processing.
     """
     drange = pd.date_range(start, end)
@@ -109,7 +108,7 @@ if __name__ == "__main__":
         "-i",
         "--input-dir",
         dest="indir",
-        default="/g/data/hj10/admin/opol/level_1b/ppi/",
+        default="/scratch/kl02/vhl548/opol/v2020/ppi/",
         type=str,
         help="Input directory.",
     )
@@ -117,7 +116,7 @@ if __name__ == "__main__":
         "-o",
         "--output-dir",
         dest="outdir",
-        default="/g/data/hj10/admin/incoming/opol/gridded/",
+        default="/scratch/kl02/vhl548/opol/v2020/gridded/",
         type=str,
         help="Output directory.",
     )
@@ -147,9 +146,9 @@ if __name__ == "__main__":
     END_DATE = args.end_date
     print(f"The input directory is {INPATH}\nThe output directory is {OUTPATH}.")
 
-    try:
-        start = datetime.datetime.strptime(START_DATE, "%Y%m%d")
-        end = datetime.datetime.strptime(END_DATE, "%Y%m%d")
+    try:        
+        start = pd.Timestamp(START_DATE)
+        end = pd.Timestamp(END_DATE)
         if start > end:
             parser.error("End date older than start date.")
     except ValueError:
