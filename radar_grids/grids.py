@@ -21,6 +21,7 @@ import os
 import uuid
 import datetime
 import traceback
+import collections
 
 from typing import Any, Dict, Tuple
 
@@ -245,8 +246,11 @@ def grid_radar(
     metadata["summary"] = f"Gridded data from radar {prefix}."
     for k, v in metadata.items():
         grid.metadata[k] = v
-    grid.metadata["title"] = f"Gridded radar volume on a {max(grid_xlim)}x{max(grid_ylim)}x{max(grid_zlim)}km grid"
+    grid.metadata["title"] = f"Gridded radar volume on a {2*max(grid_xlim)}x{2*max(grid_ylim)}x{max(grid_zlim)}km grid"
     grid = update_variables_metadata(grid)
+    # A-Z order.
+    metadata = grid.metadata
+    grid.metadata = collections.OrderedDict(sorted(metadata.items()))
 
     # Saving data.
     if outfilename is not None:
