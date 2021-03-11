@@ -97,8 +97,8 @@ def update_metadata(radar, longitude: np.ndarray, latitude: np.ndarray) -> Dict:
         "geospatial_lon_max": f"{maxlon:0.6}",
         "geospatial_lon_min": f"{minlon:0.6}",
         "geospatial_lon_units": "degrees_east",
-        "geospatial_vertical_min": radar.origin_altitude["data"][0],
-        "geospatial_vertical_max": 20000,
+        "geospatial_vertical_min": np.int32(radar.origin_altitude["data"][0]),
+        "geospatial_vertical_max": np.int32(20000),
         "geospatial_vertical_positive": "up",
         "history": f"created by Valentin Louf on gadi.nci.org.au at {today.isoformat()} using Py-ART",
         "processing_level": "b2",
@@ -327,6 +327,10 @@ def 标准映射(
                     _ = radar.fields.pop(k)
                 except KeyError:
                     pass
+
+        fkeys = list(radar.fields.keys())
+        if "corrected_reflectivity" not in fkeys or "corrected_reflectivity" not in fkeys:
+            raise KeyError("Missing important radar field.")
 
     radar_date = cftime.num2pydate(radar.time["data"][0], radar.time["units"])
     year = str(radar_date.year)
