@@ -361,9 +361,12 @@ def 标准映射(
         pass
 
     # 150 km 1000m resolution
-    ndir = "grid_150km_1000m"
-    mkdir(os.path.join(output_directory, ndir))
-    outpath = outpath.replace("grid_150km_2500m", ndir)
+    outpath = os.path.join(output_directory, "grid_150km_1000m")
+    mkdir(outpath)
+    outpath = os.path.join(outpath, year)
+    mkdir(outpath)
+    outpath = os.path.join(outpath, datestr)
+    mkdir(outpath)
 
     kwargs["outpath"] = outpath
     kwargs["grid_shape"] = (41, 301, 301)
