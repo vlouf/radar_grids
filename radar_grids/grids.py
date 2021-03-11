@@ -4,7 +4,7 @@ Gridding radar data using Barnes2 and a constant ROI from Py-ART
 @title: grids.py
 @author: Valentin Louf <valentin.louf@bom.gov.au>
 @institutions: Monash University and the Australian Bureau of Meteorology
-@date: 09/03/2021
+@date: 11/03/2021
 
 .. autosummary::
     :toctree: generated/

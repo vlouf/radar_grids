@@ -5,7 +5,7 @@ Turning radar PPIs into Cartesian grids.
 @name: radar_grids
 @author: Valentin Louf <valentin.louf@bom.gov.au>
 @institution: Monash University and the Australian Bureau of Meteorology
-@date: 09/03/2021
+@date: 11/03/2021
 
 .. autosummary::
     :toctree: generated/
@@ -75,6 +75,7 @@ def main(start: pd.Timestamp, end: pd.Timestamp) -> None:
         if len(flist) == 0:
             print(f"No file found for {INPATH}.")
             return None
+        print(f"Found {len(flist)} files for {datestr}.")
 
         for flist_chunk in chunks(flist, 32):
             with ProcessPool() as pool:
@@ -146,7 +147,7 @@ if __name__ == "__main__":
     END_DATE = args.end_date
     print(f"The input directory is {INPATH}\nThe output directory is {OUTPATH}.")
 
-    try:        
+    try:
         start = pd.Timestamp(START_DATE)
         end = pd.Timestamp(END_DATE)
         if start > end:
