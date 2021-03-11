@@ -347,8 +347,7 @@ def 标准映射(
         "grid_xlim": (-150000, 150000),
         "grid_ylim": (-150000, 150000),
         "grid_zlim": (0, 20000),
-        "constant_roi": 2500,
-        "na_standard": na_standard,
+        "constant_roi": 2500,        
     }
 
     try:
