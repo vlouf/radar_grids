@@ -55,7 +55,7 @@ def get_dtype() -> Dict:
         "corrected_specific_differential_phase": np.float32,
         "corrected_velocity": np.float32,
         "cross_correlation_ratio": np.float32,
-        "normalized_coherent_power": np.float32,        
+        "normalized_coherent_power": np.float32,
         "radar_estimated_rain_rate": np.float32,
         "signal_to_noise_ratio": np.float32,
         "spectrum_width": np.float32,
@@ -104,7 +104,7 @@ def update_metadata(radar, longitude: np.ndarray, latitude: np.ndarray) -> Dict:
         "processing_level": "b2",
         "time_coverage_start": dtime[0].isoformat(),
         "time_coverage_end": dtime[-1].isoformat(),
-        "uuid": str(uuid.uuid4()),        
+        "uuid": str(uuid.uuid4()),
     }
 
     return metadata
@@ -245,7 +245,7 @@ def grid_radar(
     metadata["summary"] = f"Gridded data from radar {prefix}."
     for k, v in metadata.items():
         grid.metadata[k] = v
-    grid.metadata["title"] = f"Gridded radar volume on a {max(grid_xlim)}x{max(grid_ylim)}x{max(grid_zlim)}km grid"    
+    grid.metadata["title"] = f"Gridded radar volume on a {max(grid_xlim)}x{max(grid_ylim)}x{max(grid_zlim)}km grid"
     grid = update_variables_metadata(grid)
 
     # Saving data.
@@ -347,7 +347,7 @@ def 标准映射(
         "grid_xlim": (-150000, 150000),
         "grid_ylim": (-150000, 150000),
         "grid_zlim": (0, 20000),
-        "constant_roi": 2500,        
+        "constant_roi": 2500,
     }
 
     try:
@@ -357,14 +357,11 @@ def 标准映射(
         pass
 
     # 150 km 1000m resolution
-    outpath = os.path.join(output_directory, "grid_150km_1000m")
-    mkdir(outpath)
-    outpath = os.path.join(outpath, year)
-    mkdir(outpath)
-    outpath = os.path.join(outpath, datestr)
-    mkdir(outpath)
+    ndir = "grid_150km_1000m"
+    mkdir(os.path.join(output_directory, ndir))
+    outpath = outpath.replace("grid_150km_2500m", ndir)
 
-    kwargs["outpath"] = outpath,
+    kwargs["outpath"] = outpath
     kwargs["grid_shape"] = (41, 301, 301)
 
     try:
