@@ -18,6 +18,7 @@ Turning radar PPIs into Cartesian grids.
 import os
 import sys
 import glob
+import time
 import argparse
 import warnings
 import traceback
@@ -69,6 +70,7 @@ def main(start: pd.Timestamp, end: pd.Timestamp) -> None:
     """
     drange = pd.date_range(start, end)
     for date in drange:
+        st = time.time()
         datestr = date.strftime("%Y%m%d")
         input_dir = os.path.join(INPATH, str(date.year), datestr, "*.nc")
         flist = sorted(glob.glob(input_dir))
@@ -93,6 +95,9 @@ def main(start: pd.Timestamp, end: pd.Timestamp) -> None:
                         print("%s. Exit code: %d" % (error, error.exitcode))
                     except Exception:
                         traceback.print_exc()
+
+        ed = time.time()
+        print(f"Processed in {ed - st:0.3}s.")
 
     return None
 
