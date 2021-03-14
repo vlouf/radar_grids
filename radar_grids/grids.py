@@ -351,7 +351,7 @@ def 标准映射(
         "outpath": outpath,
         "refl_name": refl_name,
         "prefix": prefix,
-        "grid_shape": (41, 117, 117),
+        "grid_shape": (41, 117, 117),  # 2500 m res for 300x300 km grid
         "grid_xlim": (-150000, 150000),
         "grid_ylim": (-150000, 150000),
         "grid_zlim": (0, 20000),
@@ -373,7 +373,7 @@ def 标准映射(
     mkdir(outpath)
 
     kwargs["outpath"] = outpath
-    kwargs["grid_shape"] = (41, 301, 301)
+    kwargs["grid_shape"] = (41, 301, 301)  # 1000 m res for 300x300 km grid
 
     try:
         grid_radar(radar, **kwargs)
