@@ -35,11 +35,13 @@ import dask.bag as db
 import radar_grids
 
 
-class Chronos():
+class Chronos:
     def __init__(self, messg=None):
         self.messg = messg
+
     def __enter__(self):
         self.start = time.time()
+
     def __exit__(self, ntype, value, traceback):
         self.time = time.time() - self.start
         if self.messg is not None:
@@ -60,7 +62,7 @@ def buffer(infile: str, outpath: str, prefix: str) -> None:
         Name of the input radar file.
     """
     try:
-        radar_grids.标准映射(infile, outpath, prefix=prefix, na_standard=True)
+        radar_grids.标准映射(infile, outpath, prefix=prefix, refl_name="DBZH", na_standard=True)
     except Exception:
         print(f"Problem with file {infile}")
         traceback.print_exc()
@@ -166,16 +168,18 @@ def main(date_range) -> None:
 
         # Unzip data/
         namelist = extract_zip(zipfile, path=ZIPDIR)
-        outpath = os.path.join(OUTPATH, prefix)
-        mkdir(outpath)
-        argslist = [(f, outpath, prefix) for f in namelist]
-        with Chronos(f"Radar {RID} at date {date}"):
-            bag = db.from_sequence(argslist).starmap(buffer)
-            _ = bag.compute()
-
-        # Removing unzipped files, collecting memory garbage.
-        remove(namelist)
-
+        try:
+            outpath = os.path.join(OUTPATH, prefix)
+            mkdir(outpath)
+            argslist = [(f, outpath, prefix) for f in namelist]
+            with Chronos(f"Radar {RID} at date {date}"):
+                bag = db.from_sequence(argslist).starmap(buffer)
+                _ = bag.compute()
+        except Exception:
+            traceback.print_exc()
+        finally:
+            # Removing unzipped files
+            remove(namelist)
 
     return None
 
@@ -203,7 +207,7 @@ if __name__ == "__main__":
         "-o",
         "--output",
         dest="output",
-        default="/scratch/kl02/vhl548/s3car-server/cluttercal/",
+        default="/scratch/kl02/vhl548/synthrad/radar_data",
         type=str,
         help="Output directory",
     )
