@@ -122,7 +122,7 @@ if __name__ == "__main__":
         "-o",
         "--output-dir",
         dest="outdir",
-        default="/scratch/kl02/vhl548/opol/v2020/gridded/",
+        default="/scratch/kl02/vhl548/opol/v2021/gridded/",
         type=str,
         help="Output directory.",
     )
